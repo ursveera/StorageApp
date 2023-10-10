@@ -19,7 +19,7 @@ namespace StorageApp.Services
         {
             cloudoptions = options;
             BaseUrl = Path.Combine(cloudoptions.AWS.uploadUrl, cloudoptions.AWS.Stage, cloudoptions.AWS.BucketName, "{filename}");
-           
+
             DownloadHeaders = new List<ContentHeader>() { new ContentHeader() { Key = "x-api-key", Value = cloudoptions.AWS.XAPIKEY } };
         }
 
@@ -74,3 +74,11 @@ namespace StorageApp.Services
         }
     }
 }
+
+//using (HttpClient httpClient = new HttpClient())
+//{
+//    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, BaseUrl.AddFileNameToBaseUrl(filename));
+//    DownloadHeaders?.ForEach(e => { request.Headers.Add(e.Key, e.Value); });
+//    HttpResponseMessage response = await httpClient.SendAsync(request);
+//    return response;
+//}

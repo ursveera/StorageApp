@@ -45,7 +45,7 @@ namespace StorageApp.Controllers
             var Response = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
             var _file = await Response.DownloadFileAsync(filename);
             byte[]? data = _file.RawBytes;
-            System.IO.File.WriteAllBytes(Path.Combine(temppath, filename), data);
+            //System.IO.File.WriteAllBytes(Path.Combine(temppath, filename), data);
             string DownloadFileName = Path.GetFileNameWithoutExtension(filename) + Guid.NewGuid().ToString() + "_" + Path.GetExtension(filename);
             return File(data, MimeMapping.GetContentTypeFromExtension(filename), DownloadFileName);
         }
