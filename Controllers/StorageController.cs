@@ -52,6 +52,8 @@ namespace StorageApp.Controllers
         [HttpPost]
         public string Put(IFormFile file)
         {
+            try
+            {
             byte[] datum = null;
             using (var data = file.OpenReadStream())
             {
@@ -61,6 +63,13 @@ namespace StorageApp.Controllers
                     datum = ms.ToArray();
                 }
                 var resp = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target).UploadFileAsync(file.FileName, datum);
+            }
+
+
+            }
+            catch (Exception ee)
+            {
+                return ee.Message;
             }
             return "Upload Success";
         }
