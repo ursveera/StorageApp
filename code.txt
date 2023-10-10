@@ -1,0 +1,7 @@
+//var client = new RestClient(BaseUrl.AddFileNameToBaseUrl(filename));
+            //string fileContentsString = Convert.ToBase64String(content);
+            //var request = new RestRequest(BaseUrl.AddFileNameToBaseUrl(filename),Method.Put);
+            //request.AddHeader("Content-Type", MimeMapping.GetContentTypeFromExtension(filename));
+            //request.AddParameter(MimeMapping.GetContentTypeFromExtension(filename), fileContentsString, ParameterType.RequestBody);
+            ////request.AddFile(string.Empty, content, filename, MimeMapping.GetContentTypeFromExtension(filename));
+            //await client.ExecuteAsync(request);

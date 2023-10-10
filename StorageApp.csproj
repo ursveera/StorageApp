@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="CloudOperations\**" />
+    <Compile Remove="CloudProvider\Factory\**" />
+    <Compile Remove="CloudProvider\Providers\**" />
+    <Compile Remove="Converter\**" />
+    <Content Remove="CloudOperations\**" />
+    <Content Remove="CloudProvider\Factory\**" />
+    <Content Remove="CloudProvider\Providers\**" />
+    <Content Remove="Converter\**" />
+    <EmbeddedResource Remove="CloudOperations\**" />
+    <EmbeddedResource Remove="CloudProvider\Factory\**" />
+    <EmbeddedResource Remove="CloudProvider\Providers\**" />
+    <EmbeddedResource Remove="Converter\**" />
+    <None Remove="CloudOperations\**" />
+    <None Remove="CloudProvider\Factory\**" />
+    <None Remove="CloudProvider\Providers\**" />
+    <None Remove="Converter\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Extensions\CommonCloudStorageServiceExtensions.cs" />
+    <Compile Remove="Services\CloudStorageService.cs" />
+    <Compile Remove="Services\CloudStorageServiceTest.cs" />
+    <Compile Remove="Services\CommonCloudStorageService.cs" />
+    <Compile Remove="WeatherForecast.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="StorageSettings.Development.json" />
+    <Content Remove="StorageSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="code.txt" />
+    <None Remove="Controllers\TestController.bck" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="RestSharp" Version="110.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+  </ItemGroup>
+
+</Project>

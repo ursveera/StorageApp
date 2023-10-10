@@ -1,0 +1,19 @@
+{
+  "Cloud": {
+    "AZURE": {
+      "StorageUrl": "https://testproject.blob.core.windows.net/",
+      "ListFilesQueryString": "restype=container&comp=list&",
+      "BlobContainerName": "testcontainer1",
+      "SASToken": "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-06-10T13:27:50Z&st=2023-10-06T05:27:50Z&spr=https&sig=SzbkNGTBAurKhR4lCOw4plGodWVqURWhd1CarXSL6d4%3D",
+      "StorageUrlTest": "https://testproject.blob.core.windows.net/{containername}/{filename}?sv=2022-11-02&ss=bf&srt=o&sp=rwdlaciytfx&se=2023-12-01T15:54:21Z&st=2023-10-03T07:54:21Z&spr=https&sig=wudM37aOehWxmk8icelejZB53qL2uuQ%2FNFRIH2SLQKQ%3D"
+    },
+    "AWS": {
+      "uploadUrl": "https://f5aodrz645.execute-api.us-east-2.amazonaws.com/",
+      "BucketName": "fileuploadbucketveera",
+      "Stage": "dev",
+      "XAPIKEY": "T4OOfMdvTWesPrDGZeGMaH5GNYYBEcy8M5Q6W8c9"
+    },
+    "Target": "AZURE"
+  }
+  
+}
