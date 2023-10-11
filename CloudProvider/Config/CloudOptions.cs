@@ -5,6 +5,7 @@ namespace StorageApp.CloudProvider.Config
     {
         public AWSOptions AWS { get; set; }
         public AZUREOptions Azure { get; set; }
+        public GCPOptions Gcp { get; set; }
         public string Target { get; set; }
     }
 }

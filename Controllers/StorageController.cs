@@ -13,79 +13,63 @@ namespace StorageApp.Controllers
 {
     [ApiController]
     [Route("[controller]/[action]")]
+    [CustomExceptionFilter]
     public class StorageController : ControllerBase
     {
-        private readonly string temppath;
         private readonly ILogger<StorageController> _logger;
         private readonly IConfiguration _config;
         private readonly CloudOptions cloudoptions;
         private readonly ICloudStorageServiceFactory _cloudStorageServiceFactory;
 
-        public StorageController(ILogger<StorageController> logger,IConfiguration config, ICloudStorageServiceFactory cloudStorageServiceFactory, IOptionsMonitor<CloudOptions> options)
+        public StorageController(ILogger<StorageController> logger, IConfiguration config, ICloudStorageServiceFactory cloudStorageServiceFactory, IOptionsMonitor<CloudOptions> options)
         {
             _logger = logger;
-            //cloudstorage = storage;
             _config = config;
-            cloudoptions = options.CurrentValue ;
-            temppath = config["TempStoragePath"];
-            _cloudStorageServiceFactory= cloudStorageServiceFactory;
-            //    List<FileInformation> files = new List<FileInformation>();
-            //    var a = new FileInformation() {ID=1, FileName="Filename1", FileType=".png", CreatedOn=DateTime.Now, CreatedBy="Personname", Access="Access Detail" };
-            //    files.Add(a);
-            //    files.Add(a);
-            //    files.Add(a);
-            //    files.Add(a);
-            //    files.Add(a);
-            //    string jsondata=JsonConvert.SerializeObject(files);
+            cloudoptions = options.CurrentValue;
+            _cloudStorageServiceFactory = cloudStorageServiceFactory;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get(string filename)
         {
+            if (string.IsNullOrEmpty(filename))
+            {
+                return BadRequest("Filename is missing.");
+            }
             var Response = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
-            var _file = await Response.DownloadFileAsync(filename);
-            byte[]? data = _file.RawBytes;
-            //System.IO.File.WriteAllBytes(Path.Combine(temppath, filename), data);
+            byte[] _file = await Response.DownloadFileAsync(filename);
+            if (_file == null || _file == null || _file.Length == 0)
+            {
+                return NotFound("File not found.");
+            }
+            byte[]? data = _file;
             string DownloadFileName = Path.GetFileNameWithoutExtension(filename) + Guid.NewGuid().ToString() + "_" + Path.GetExtension(filename);
             return File(data, MimeMapping.GetContentTypeFromExtension(filename), DownloadFileName);
         }
         [HttpPost]
-        public string Put(IFormFile file)
+        public async Task<IActionResult> Put(IFormFile file)
         {
-            try
+            if (file == null || file.Length == 0)
             {
-            byte[] datum = null;
-            using (var data = file.OpenReadStream())
-            {
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    data.CopyToAsync(ms);
-                    datum = ms.ToArray();
-                }
-                var resp = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target).UploadFileAsync(file.FileName, datum);
+                return BadRequest("No file uploaded.");
             }
+            using (var memoryStream = new MemoryStream())
+            {
+                await file.CopyToAsync(memoryStream);
+                byte[] fileData = memoryStream.ToArray();
 
-
+                string fileName = file.FileName;
+                var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
+                await cloudStorageService.UploadFileAsync(fileName, fileData);
+                return Ok("Upload Success");
             }
-            catch (Exception ee)
-            {
-                return ee.Message;
-            }
-            return "Upload Success";
         }
         [HttpPost]
         public async Task<IActionResult> List()
         {
-            var response = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target).ListAllFileAsync().Result;
+            var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
+            var response = await cloudStorageService.ListAllFileAsync();
             return Ok(response);
         }
-        //[HttpPost]
-        //public string MoveFile_AzureTOAWS_AWSTOAZURE(string filename)
-        //{
-        //    var _file = cloudstorage.DownloadFileAsync(filename).Result;
-        //    byte[]? data = _file.RawBytes;
-        //    cloudstorage.UploadFileAsync(filename, data);
-        //    return "OK";
-        //}
     }
 }

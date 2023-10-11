@@ -5,6 +5,7 @@ using StorageApp.CloudProvider.Config;
 using StorageApp.Extensions;
 using StorageApp.Models;
 using StorageApp.Models.APIResponse;
+using System.Drawing;
 using System.Xml.Serialization;
 
 namespace StorageApp.Services
@@ -25,13 +26,13 @@ namespace StorageApp.Services
 
         }
 
-        public async Task<RestResponse> DownloadFileAsync(string filename)
+        public async Task<byte[]> DownloadFileAsync(string filename)
         {
             var client = new RestClient(BaseUrl.AddFileNameToBaseUrl(filename));
             var request = new RestRequest("", Method.Get);
             DownloadHeaders?.ForEach(e => { request.AddHeader(e.Key, e.Value); });
             var resp = await client.ExecuteAsync(request);
-            return resp;
+            return resp.RawBytes;
         }
 
         public async Task<List<FileInformation>> ListAllFileAsync()
@@ -50,19 +51,18 @@ namespace StorageApp.Services
                     List<FileInformation> fileInformation = new List<FileInformation>();
                     azureResp.Blobs.ToList().ForEach(e =>
                     {
-
                         FileInformation f = new FileInformation();
                         f.FileName = e.Name;
                         f.CreatedOn = e.Properties.CreationTime;
                         f.FileType = Path.GetExtension(e.Name);
                         f.Access = e.Properties.AccessTier;
                         f.CreatedBy = "Admin";
+                        f.Size = MimeMapping.FormatFileSize(e.Properties.ContentLength);
                         fileInformation.Add(f);
                     });
                     return fileInformation;
                 }
             }
-
             return null;
         }
 
@@ -77,11 +77,6 @@ namespace StorageApp.Services
                 byteArrayContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
                 await httpClient.PutAsync(BaseUrl.AddFileNameToBaseUrl(filename), byteArrayContent);
             }
-            //var client = new RestClient(BaseUrl.AddFileNameToBaseUrl(filename));
-            //var request = new RestRequest("", Method.Put);
-            //UploadHeaders?.ForEach(e => { request.AddHeader(e.Key, e.Value); });
-            //request.AddFile(string.Empty, content, string.Empty, "multipart/form-data");
-            //await client.ExecuteAsync(request);
         }
     }
 }

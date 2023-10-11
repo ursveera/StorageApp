@@ -5,11 +5,13 @@ using StorageApp.CloudProvider.Config;
 using StorageApp.Factory;
 using StorageApp.Interfaces;
 using StorageApp.Models.ApiResponse;
+using System.Runtime.InteropServices;
 
 namespace StorageApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [CustomExceptionFilter]
     public class CloudConfigController : ControllerBase
     {
         private readonly ICloudConfiguration cloudConfiguration;
@@ -21,14 +23,26 @@ namespace StorageApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetCloudConfiguration(string cloudname)
+        public async Task<IActionResult> GetCloudConfiguration(string cloudname)
         {
-            var config=cloudConfiguration.GetCloudConfig(cloudname);
-            return Ok(config.Result);
+            if (string.IsNullOrEmpty(cloudname))
+            {
+                return BadRequest("Cloud name is missing.");
+            }
+            var config = await cloudConfiguration.GetCloudConfig(cloudname);
+            if (config == null)
+            {
+                return NotFound("Cloud configuration not found.");
+            }
+            return Ok(config);
         }
         [HttpPost]
         public IActionResult PostCloudConfiguration(CloudOptions cloud)
         {
+            if (cloud == null)
+            {
+                return BadRequest("Invalid cloud configuration data.");
+            }
             cloudConfiguration.UpdateCloudSettings(cloud);
             resp.Message = "Updated Successfully";
             return Ok(resp);
@@ -36,6 +50,10 @@ namespace StorageApp.Controllers
         [HttpPost("aws")]
         public IActionResult PostAWS(AWSOptions cloud)
         {
+            if (cloud == null)
+            {
+                return BadRequest("Invalid cloud configuration data.");
+            }
             cloudConfiguration.UpdateCloudSettings(cloud);
             resp.Message = "AWS Updated Successfully";
             return Ok(resp);
@@ -43,6 +61,10 @@ namespace StorageApp.Controllers
         [HttpPost("azure")]
         public IActionResult PostAZURE(AZUREOptions cloud)
         {
+            if (cloud == null)
+            {
+                return BadRequest("Invalid cloud configuration data.");
+            }
             cloudConfiguration.UpdateCloudSettings(cloud);
             resp.Message = "Azure Updated Successfully";
             return Ok(resp);
@@ -50,6 +72,10 @@ namespace StorageApp.Controllers
         [HttpPost("target")]
         public IActionResult PostTarget(string target)
         {
+            if (string.IsNullOrEmpty(target))
+            {
+                return BadRequest("Invalid target.");
+            }
             cloudConfiguration.UpdateCloudSettings(target);
             resp.Message = "Target Updated Successfully";
             return Ok(resp);

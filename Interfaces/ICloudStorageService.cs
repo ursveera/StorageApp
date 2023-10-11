@@ -6,7 +6,7 @@ namespace StorageApp
     public interface ICloudStorageService
     {
         Task UploadFileAsync(string filename, byte[] content);
-        Task<RestResponse> DownloadFileAsync(string filename);
+        Task<byte[]> DownloadFileAsync(string filename);
         Task<List<FileInformation>> ListAllFileAsync();
 
     }

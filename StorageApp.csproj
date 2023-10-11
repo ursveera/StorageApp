@@ -11,18 +11,22 @@
     <Compile Remove="CloudProvider\Factory\**" />
     <Compile Remove="CloudProvider\Providers\**" />
     <Compile Remove="Converter\**" />
+    <Compile Remove="SettingBCK\**" />
     <Content Remove="CloudOperations\**" />
     <Content Remove="CloudProvider\Factory\**" />
     <Content Remove="CloudProvider\Providers\**" />
     <Content Remove="Converter\**" />
+    <Content Remove="SettingBCK\**" />
     <EmbeddedResource Remove="CloudOperations\**" />
     <EmbeddedResource Remove="CloudProvider\Factory\**" />
     <EmbeddedResource Remove="CloudProvider\Providers\**" />
     <EmbeddedResource Remove="Converter\**" />
+    <EmbeddedResource Remove="SettingBCK\**" />
     <None Remove="CloudOperations\**" />
     <None Remove="CloudProvider\Factory\**" />
     <None Remove="CloudProvider\Providers\**" />
     <None Remove="Converter\**" />
+    <None Remove="SettingBCK\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,18 +38,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="appsettings - Copy.json" />
     <Content Remove="StorageSettings.Development.json" />
     <Content Remove="StorageSettings.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove=".gitattributes" />
+    <None Remove=".gitignore" />
     <None Remove="code.txt" />
     <None Remove="Controllers\TestController.bck" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="4.6.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="RestSharp" Version="110.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Azure;
+using Microsoft.Extensions.Options;
 using RestSharp;
 using StorageApp.CloudProvider.Config;
 using StorageApp.Extensions;
@@ -19,17 +20,16 @@ namespace StorageApp.Services
         {
             cloudoptions = options;
             BaseUrl = Path.Combine(cloudoptions.AWS.uploadUrl, cloudoptions.AWS.Stage, cloudoptions.AWS.BucketName, "{filename}");
-
             DownloadHeaders = new List<ContentHeader>() { new ContentHeader() { Key = "x-api-key", Value = cloudoptions.AWS.XAPIKEY } };
         }
 
-        public async Task<RestResponse> DownloadFileAsync(string filename)
+        public async Task<byte[]> DownloadFileAsync(string filename)
         {
             var client = new RestClient(BaseUrl.AddFileNameToBaseUrl(filename));
             var request = new RestRequest("", Method.Get);
             DownloadHeaders?.ForEach(e => { request.AddHeader(e.Key, e.Value); });
             var resp = await client.ExecuteAsync(request);
-            return resp;
+            return resp.RawBytes;
         }
 
         public async Task<List<FileInformation>> ListAllFileAsync()
@@ -38,27 +38,25 @@ namespace StorageApp.Services
             var request = new RestRequest("", Method.Get);
             DownloadHeaders?.ForEach(e => { request.AddHeader(e.Key, e.Value); });
             var resp = await client.ExecuteAsync(request);
-            if (resp.Content != null)
+            if (!string.IsNullOrEmpty(resp.Content))
             {
                 var serializer = new XmlSerializer(typeof(ListBucketResult));
                 using (var reader = new StringReader(resp.Content))
                 {
                     var awsResp = (ListBucketResult)serializer.Deserialize(reader);
-                    List<FileInformation> fileInformation = new List<FileInformation>();
-                    awsResp.Contents.ToList().ForEach(e =>
+                    var fileInformation = awsResp.Contents.Select(e => new FileInformation
                     {
-                        FileInformation f = new FileInformation();
-                        f.FileName = e.Key;
-                        f.CreatedOn = e.LastModified.ToString();
-                        f.FileType = Path.GetExtension(e.Key);
-                        f.Access = e.Owner.ID;
-                        f.CreatedBy = "Admin";
-                        fileInformation.Add(f);
-                    });
+                        FileName = e.Key,
+                        CreatedOn = e.LastModified.ToString(),
+                        FileType = Path.GetExtension(e.Key),
+                        Access = e.Owner.ID,
+                        CreatedBy = "Admin",
+                        Size=MimeMapping.FormatFileSize(e.Size)
+                    }).ToList();
                     return fileInformation;
                 }
             }
-            return null;
+            return new List<FileInformation>();
         }
 
         public async Task UploadFileAsync(string filename, byte[] bytecontent)
@@ -74,11 +72,3 @@ namespace StorageApp.Services
         }
     }
 }
-
-//using (HttpClient httpClient = new HttpClient())
-//{
-//    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, BaseUrl.AddFileNameToBaseUrl(filename));
-//    DownloadHeaders?.ForEach(e => { request.Headers.Add(e.Key, e.Value); });
-//    HttpResponseMessage response = await httpClient.SendAsync(request);
-//    return response;
-//}

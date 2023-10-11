@@ -12,7 +12,6 @@ namespace StorageApp.Services
     {
         private readonly CloudOptions _cloudoptions;
         string appSettingsFilePath, appSettingsFilePath_BCK;
-
         public CloudConfigurationService(IOptionsMonitor<CloudOptions> options)
         {
             _cloudoptions = options.CurrentValue;
@@ -23,17 +22,11 @@ namespace StorageApp.Services
                 Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "SettingBCK"));
             }
         }
-        public Task<Object> GetCloudConfig(string cloud)
+        public Task<object> GetCloudConfig(string cloud)
         {
-            PropertyInfo propertyInfo = typeof(CloudOptions).GetProperty(cloud, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-          
-            if (propertyInfo != null)
-            {
-                object cloudOption = propertyInfo.GetValue(_cloudoptions);
-                return Task.FromResult(cloudOption);
-            }
-            object allCloud = _cloudoptions;
-            return Task.FromResult(allCloud);
+            var propertyInfo = typeof(CloudOptions).GetProperty(cloud, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            object? cloudOption = propertyInfo != null? propertyInfo.GetValue(_cloudoptions): _cloudoptions;
+            return Task.FromResult<object>(cloudOption);
         }
 
         public void UpdateCloudSettings(CloudOptions cloudOptions)
@@ -47,7 +40,6 @@ namespace StorageApp.Services
             var json = File.ReadAllText(appSettingsFilePath);
             File.WriteAllText(appSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);
-
             JObject updatedAzureOptionsObject = JObject.FromObject(cloudOptions.Azure);
             JObject updatedAWSOptionsObject = JObject.FromObject(cloudOptions.AWS);
             jObject["Cloud"]["AWS"] = updatedAWSOptionsObject;
@@ -58,7 +50,6 @@ namespace StorageApp.Services
         }
         public void UpdateCloudSettings(AWSOptions aws)
         {
-            
             var json = File.ReadAllText(appSettingsFilePath);
             File.WriteAllText(appSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);

@@ -5,3 +5,60 @@
             //request.AddParameter(MimeMapping.GetContentTypeFromExtension(filename), fileContentsString, ParameterType.RequestBody);
             ////request.AddFile(string.Empty, content, filename, MimeMapping.GetContentTypeFromExtension(filename));
             //await client.ExecuteAsync(request);
+
+
+//switch (_options.Target.ToLower())
+            //{
+            //    case "azure":
+            //        string azureBlobUrl = Path.Combine(_options.Azure.StorageUrl, _options.Azure.BlobContainerName, "{filename}" + "?" + _options.Azure.SASToken);
+            //        List<ContentHeader> azureUploadheaders = new List<ContentHeader>() { new ContentHeader() { Key = "x-ms-blob-type", Value = "BlockBlob" } };
+            //        return new CommonCloudStorageService().WithBaseUrl(azureBlobUrl).WithUploadHeaders(azureUploadheaders);
+            //    case "aws":
+            //        string awsS3Url = Path.Combine(_options.AWS.uploadUrl, _options.AWS.Stage, _options.AWS.BucketName, "{filename}");
+            //        List<ContentHeader> awsUploadheader = new List<ContentHeader>() { new ContentHeader() { Key = "Content-Type", Value = MediaTypeNames.Application.Octet } };
+            //        List<ContentHeader> awsDownloadheader = new List<ContentHeader>() { new ContentHeader() { Key = "x-api-key", Value = _options.AWS.XAPIKEY } };
+            //        return new CommonCloudStorageService().WithBaseUrl(awsS3Url).WithUploadHeaders(awsUploadheader).WithDownloadHeaders(awsDownloadheader);
+            //    default:
+            //        throw new ArgumentException("Invalid file storage provider.");
+            //}
+
+
+
+//using (HttpClient httpClient = new HttpClient())
+//{
+//    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, BaseUrl.AddFileNameToBaseUrl(filename));
+//    DownloadHeaders?.ForEach(e => { request.Headers.Add(e.Key, e.Value); });
+//    HttpResponseMessage response = await httpClient.SendAsync(request);
+//    return response;
+//}
+
+
+            //var client = new RestClient(BaseUrl.AddFileNameToBaseUrl(filename));
+            //var request = new RestRequest("", Method.Put);
+            //UploadHeaders?.ForEach(e => { request.AddHeader(e.Key, e.Value); });
+            //request.AddFile(string.Empty, content, string.Empty, "multipart/form-data");
+            //await client.ExecuteAsync(request);
+
+
+            //    List<FileInformation> files = new List<FileInformation>();
+            //    var a = new FileInformation() {ID=1, FileName="Filename1", FileType=".png", CreatedOn=DateTime.Now, CreatedBy="Personname", Access="Access Detail" };
+            //    files.Add(a);
+            //    files.Add(a);
+            //    files.Add(a);
+            //    files.Add(a);
+            //    files.Add(a);
+            //    string jsondata=JsonConvert.SerializeObject(files);
+
+
+            //cloudstorage = storage;
+
+            //System.IO.File.WriteAllBytes(Path.Combine(temppath, filename), data);
+
+        //[HttpPost]
+        //public string MoveFile_AzureTOAWS_AWSTOAZURE(string filename)
+        //{
+        //    var _file = cloudstorage.DownloadFileAsync(filename).Result;
+        //    byte[]? data = _file.RawBytes;
+        //    cloudstorage.UploadFileAsync(filename, data);
+        //    return "OK";
+        //}
