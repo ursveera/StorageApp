@@ -51,12 +51,12 @@ namespace StorageApp.Services
                     var fileInfo = new FileInformation
                     {
                         ID = Guid.NewGuid().ToString(),
-                        FileName = blockBlob.Name,
-                        FileType = Path.GetExtension(blockBlob.Name),
-                        CreatedOn = blockBlob.Properties.Created.ToString(),
-                        CreatedBy = "Admin",
-                        Access = "Private",
-                        Size = (ulong)blockBlob.Properties.Length
+                        fileName = blockBlob.Name,
+                        fileType = Path.GetExtension(blockBlob.Name),
+                        createdOn = blockBlob.Properties.Created.ToString(),
+                        createdBy = "Admin",
+                        access = "Private",
+                        size = (ulong)blockBlob.Properties.Length
                     };
                     fileInformation.Add(fileInfo);
                 }
@@ -99,12 +99,12 @@ namespace StorageApp.Services
                     filesList.fileInfo.Add(new FileInformation
                     {
                         ID = Guid.NewGuid().ToString(),
-                        FileName = Path.GetFileName(blockBlob.Name),
-                        FileType = Path.GetExtension(blockBlob.Name),
-                        CreatedOn = blockBlob.Properties.Created.ToString(),
-                        CreatedBy = "Admin",
-                        Access = "Private",
-                        Size = (ulong)blockBlob.Properties.Length
+                        fileName = Path.GetFileName(blockBlob.Name),
+                        fileType = Path.GetExtension(blockBlob.Name),
+                        createdOn = blockBlob.Properties.Created.ToString(),
+                        createdBy = "Admin",
+                        access = "Private",
+                        size = (ulong)blockBlob.Properties.Length
                     });
                 }
                 else
@@ -120,7 +120,7 @@ namespace StorageApp.Services
                     {
                         createdBy = "Admin",
                         createdOn = "",
-                        Size = "",
+                        size = "",
                         folderName = foldername
                     });
                 }

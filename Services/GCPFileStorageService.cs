@@ -64,12 +64,12 @@ namespace StorageApp.Services
                     storageName = Path.GetFileName(storageObject.Name);
                     filesList.fileInfo.Add(new FileInformation
                     {
-                        FileName = storageName,
-                        FileType = storageObject.Name.Substring(storageObject.Name.LastIndexOf('.') + 1),
-                        CreatedOn = storageObject.TimeCreated?.ToString() ?? "",
-                        CreatedBy = "Admin",
-                        Access = "Full",
-                        Size = storageObject.Size,
+                        fileName = storageName,
+                        fileType = storageObject.Name.Substring(storageObject.Name.LastIndexOf('.') + 1),
+                        createdOn = storageObject.TimeCreated?.ToString() ?? "",
+                        createdBy = "Admin",
+                        access = "Full",
+                        size = storageObject.Size,
                     });
                 }
                 else
@@ -85,7 +85,7 @@ namespace StorageApp.Services
                             folderinformationList.Add(new FolderInformation {
                                 createdBy="Admin",
                                 createdOn= storageObject.TimeCreated.ToString(),
-                                Size= storageObject.Size.ToString(),
+                                size= storageObject.Size.ToString(),
                                 folderName= foldername
                             });
                             filesList.folderInfo = folderinformationList;
@@ -104,12 +104,12 @@ namespace StorageApp.Services
             {
               var fileInformation = new FileInformation
                 {
-                    FileName = storageObject.Name,
-                    CreatedBy = "Admin",
-                    CreatedOn = storageObject.TimeCreated.ToString(),
-                    FileType = Path.GetExtension(storageObject.Name),
-                    Access = "Full",
-                    Size = storageObject.Size
+                    fileName = storageObject.Name,
+                    createdBy = "Admin",
+                    createdOn = storageObject.TimeCreated.ToString(),
+                    fileType = Path.GetExtension(storageObject.Name),
+                    access = "Full",
+                    size = storageObject.Size
                 };
                 fileInformationList.Add(fileInformation);
             }

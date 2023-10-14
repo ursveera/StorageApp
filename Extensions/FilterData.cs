@@ -46,14 +46,14 @@ namespace StorageApp.Extensions
         {
             sourceList.ForEach(e =>
             {
-                e.FileSize = MimeMapping.FormatFileSize(e.Size);
+                e.fileSize = MimeMapping.FormatFileSize(e.size);
             });
             return sourceList;
 
         }
         public static List<FileInformation> RemoveSubDirectoryFiles(this List<FileInformation> sourceList)
         {
-            sourceList = sourceList.Where(e => !e.FileName.Contains("/") && !e.FileName.EndsWith("/")).ToList();
+            sourceList = sourceList.Where(e => !e.fileName.Contains("/") && !e.fileName.EndsWith("/")).ToList();
             return sourceList;
 
         }

@@ -59,12 +59,12 @@ namespace StorageApp.Services
             var response = await s3Client.ListObjectsAsync(request);
             var fileInformation = response.S3Objects.Select(e => new FileInformation
             {
-                FileName = e.Key,
-                CreatedOn = e.LastModified.ToString(),
-                FileType = Path.GetExtension(e.Key),
-                Access = e.Owner.Id,
-                CreatedBy = "Admin",
-                Size =(ulong)e.Size
+                fileName = e.Key,
+                createdOn = e.LastModified.ToString(),
+                fileType = Path.GetExtension(e.Key),
+                access = e.Owner.Id,
+                createdBy = "Admin",
+                size =(ulong)e.Size
             }).ToList();
             return fileInformation;
         }
@@ -107,12 +107,12 @@ namespace StorageApp.Services
                     storageName = Path.GetFileName(e.Key);
                     filesList.fileInfo.Add(new FileInformation
                     {
-                        FileName = storageName,
-                        FileType = e.Key.Substring(e.Key.LastIndexOf('.') + 1),
-                        CreatedOn =e.LastModified.ToString() ?? "",
-                        CreatedBy = "Admin",
-                        Access = e.Owner.Id,
-                        Size = (ulong)e.Size,
+                        fileName = storageName,
+                        fileType = e.Key.Substring(e.Key.LastIndexOf('.') + 1),
+                        createdOn =e.LastModified.ToString() ?? "",
+                        createdBy = "Admin",
+                        access = e.Owner.Id,
+                        size = (ulong)e.Size,
                     });
                 }
                 else
@@ -129,8 +129,8 @@ namespace StorageApp.Services
                             {
                                 createdBy = "Admin",
                                 createdOn = e.LastModified.ToString(),
-                                Size = e.Size.ToString(),
-                                folderName = foldername
+                                size = e.Size.ToString(),
+                               folderName = foldername
                             });
                             filesList.folderInfo = folderinformationList;
                         }

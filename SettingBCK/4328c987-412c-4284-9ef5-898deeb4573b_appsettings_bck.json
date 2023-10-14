@@ -1,0 +1,34 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "Cloud": {
+    "AZURE": {
+      "BlobContainerName": "testcontainer1",
+      "ListFilesQueryString": "restype=container&comp=list&",
+      "SASToken": "sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-06-10T13:27:50Z&st=2023-10-06T05:27:50Z&spr=https&sig=SzbkNGTBAurKhR4lCOw4plGodWVqURWhd1CarXSL6d4%3D",
+      "StorageUrl": "https://testproject.blob.core.windows.net/",
+      "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=testproject;AccountKey=TdCuLYpPzxj3DA7GpjjXy4E+E13QFDH17WnGHc9t75vpwkLFrAWy840s2yuP5nIOoR27OsdLZ4Kt+AStlu1gfw==;EndpointSuffix=core.windows.net"
+    },
+    "AWS": {
+      "uploadUrl": "https://f5aodrz645.execute-api.us-east-2.amazonaws.com/",
+      "BucketName": "fileuploadbucketveera",
+      "Stage": "dev",
+      "XAPIKEY": "T4OOfMdvTWesPrDGZeGMaH5GNYYBEcy8M5Q6W8c9",
+      "AccessKey": "AKIAX7B4PNRJDBJQUKOC",
+      "SecretKey": "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"
+    },
+    "GCP": {
+      "apikey": "AIzaSyC3VeqFPl1dBCJy_kodu6P3LXEpqhAF81g",
+      "projectid": "caaf-401707",
+      "bucketname": "caafbucket",
+      "apiconfigfilejson": "caaf-401707-046a2a295845.json"
+    },
+    "Target": "azure"
+  },
+  "TempStoragePath": "F:\\UPWORKK\\OKTA\\TempPath"
+}
