@@ -1,4 +1,7 @@
-﻿namespace StorageApp.Extensions
+﻿using System.Collections.Generic;
+using System;
+
+namespace StorageApp.Extensions
 {
     public static class MimeMapping
     {
@@ -55,3 +58,5 @@
 
     }
 }
+
+

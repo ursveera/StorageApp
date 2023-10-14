@@ -42,8 +42,10 @@ namespace StorageApp.Services
             var jObject = JObject.Parse(json);
             JObject updatedAzureOptionsObject = JObject.FromObject(cloudOptions.Azure);
             JObject updatedAWSOptionsObject = JObject.FromObject(cloudOptions.AWS);
+            JObject updatedGcpOptionsObject = JObject.FromObject(cloudOptions.Gcp);
             jObject["Cloud"]["AWS"] = updatedAWSOptionsObject;
             jObject["Cloud"]["AZURE"] = updatedAzureOptionsObject;
+            jObject["Cloud"]["GCP"] = updatedGcpOptionsObject;
             jObject["Cloud"]["Target"] = cloudOptions.Target;
             string updatedJson = jObject.ToString();
             File.WriteAllText(appSettingsFilePath, updatedJson);
@@ -65,6 +67,16 @@ namespace StorageApp.Services
             var jObject = JObject.Parse(json);
             JObject updatedAWSOptionsObject = JObject.FromObject(azure);
             jObject["Cloud"]["AZURE"] = updatedAWSOptionsObject;
+            string updatedJson = jObject.ToString();
+            File.WriteAllText(appSettingsFilePath, updatedJson);
+        }
+        public void UpdateCloudSettings(GCPOptions gcp)
+        {
+            var json = File.ReadAllText(appSettingsFilePath);
+            File.WriteAllText(appSettingsFilePath_BCK, json);
+            var jObject = JObject.Parse(json);
+            JObject updatedGCPOptionsObject = JObject.FromObject(gcp);
+            jObject["Cloud"]["GCP"] = updatedGCPOptionsObject;
             string updatedJson = jObject.ToString();
             File.WriteAllText(appSettingsFilePath, updatedJson);
         }

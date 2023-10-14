@@ -1,5 +1,8 @@
 ﻿using Azure;
+using Google.Api.Gax.ResourceNames;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using RestSharp;
 using StorageApp.CloudProvider.Config;
 using StorageApp.Extensions;
@@ -12,71 +15,117 @@ namespace StorageApp.Services
 {
     public class AzureFileStorageService : ICloudStorageService
     {
-        private string BaseUrl;
-        private string listUrl;
-        private readonly List<ContentHeader>? UploadHeaders;
-        private List<ContentHeader>? DownloadHeaders;
         private readonly CloudOptions? cloudoptions;
+        private readonly string storageConnectionString;
+        private readonly string containerName;
+        private readonly CloudStorageAccount storageAccount;
+        private readonly CloudBlobClient blobClient;
+        private readonly CloudBlobContainer blobContainer;
         public AzureFileStorageService(CloudOptions options)
         {
             cloudoptions = options;
-            BaseUrl = Path.Combine(cloudoptions.Azure.StorageUrl, cloudoptions.Azure.BlobContainerName, "{filename}" + "?" + cloudoptions.Azure.SASToken);
-            listUrl = Path.Combine(cloudoptions.Azure.StorageUrl, cloudoptions.Azure.BlobContainerName + "?" +cloudoptions.Azure.ListFilesQueryString+cloudoptions.Azure.SASToken);
-            UploadHeaders = new List<ContentHeader>() { new ContentHeader() { Key = "x-ms-blob-type", Value = "BlockBlob" } };
-
+            storageConnectionString = cloudoptions.Azure.ConnectionString;
+            containerName = cloudoptions.Azure.BlobContainerName;
+            CloudStorageAccount.TryParse(storageConnectionString, out storageAccount);
+            blobClient = storageAccount.CreateCloudBlobClient();
+            blobContainer = blobClient.GetContainerReference(containerName);
         }
 
         public async Task<byte[]> DownloadFileAsync(string filename)
         {
-            var client = new RestClient(BaseUrl.AddFileNameToBaseUrl(filename));
-            var request = new RestRequest("", Method.Get);
-            DownloadHeaders?.ForEach(e => { request.AddHeader(e.Key, e.Value); });
-            var resp = await client.ExecuteAsync(request);
-            return resp.RawBytes;
+            CloudBlockBlob cloudBlockBlob = blobContainer.GetBlockBlobReference(filename);
+            var memoryStream = new MemoryStream();
+            await cloudBlockBlob.DownloadToStreamAsync(memoryStream);
+            memoryStream.Position = 0;
+            return memoryStream.ToArray();
         }
 
-        public async Task<List<FileInformation>> ListAllFileAsync()
+        public async Task<List<FileInformation>> ListAllFileAsync(string prefix)
         {
-            var client = new RestClient(listUrl);
-            var request = new RestRequest("", Method.Get);
-            DownloadHeaders?.ForEach(e => { request.AddHeader(e.Key, e.Value); });
-            var resp = await client.ExecuteAsync(request);
-
-            if (resp.Content != null)
+            List<FileInformation> fileInformation = new List<FileInformation>();
+            var blobs = await blobContainer.ListBlobsSegmentedAsync(null);
+            foreach (var blob in blobs.Results)
             {
-                var serializer = new XmlSerializer(typeof(AzureResponse));
-                using (var reader = new StringReader(resp.Content))
+                if (blob is CloudBlockBlob blockBlob)
                 {
-                    var azureResp = (AzureResponse)serializer.Deserialize(reader);
-                    List<FileInformation> fileInformation = new List<FileInformation>();
-                    azureResp.Blobs.ToList().ForEach(e =>
+                    var fileInfo = new FileInformation
                     {
-                        FileInformation f = new FileInformation();
-                        f.FileName = e.Name;
-                        f.CreatedOn = e.Properties.CreationTime;
-                        f.FileType = Path.GetExtension(e.Name);
-                        f.Access = e.Properties.AccessTier;
-                        f.CreatedBy = "Admin";
-                        f.Size = MimeMapping.FormatFileSize(e.Properties.ContentLength);
-                        fileInformation.Add(f);
-                    });
-                    return fileInformation;
+                        ID = Guid.NewGuid().ToString(),
+                        FileName = blockBlob.Name,
+                        FileType = Path.GetExtension(blockBlob.Name),
+                        CreatedOn = blockBlob.Properties.Created.ToString(),
+                        CreatedBy = "Admin",
+                        Access = "Private",
+                        Size = (ulong)blockBlob.Properties.Length
+                    };
+                    fileInformation.Add(fileInfo);
                 }
             }
-            return null;
+            return fileInformation;
         }
 
         public async Task UploadFileAsync(string filename, byte[] content)
         {
-            using (HttpClient httpClient = new HttpClient())
+            CloudBlockBlob cloudBlockBlob = blobContainer.GetBlockBlobReference(filename);
+            await cloudBlockBlob.UploadFromByteArrayAsync(content, 0, content.Length);
+        }
+
+        public async Task<FilesList> ListAllFileAndFoldersAsync(string prefix)
+        {
+            var directory = blobContainer.GetDirectoryReference(prefix);
+            BlobContinuationToken continuationToken = null;
+            List<FolderInformation> folderinformationList = new List<FolderInformation>();
+            var filesList = new FilesList
             {
-                string fileContentsString = Convert.ToBase64String(content);
-                string contentType = MimeMapping.GetContentTypeFromExtension(filename);
-                ByteArrayContent byteArrayContent = new ByteArrayContent(content);
-                byteArrayContent.Headers.Add("x-ms-blob-type", "BlockBlob");
-                byteArrayContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
-                await httpClient.PutAsync(BaseUrl.AddFileNameToBaseUrl(filename), byteArrayContent);
+                fileInfo = new List<FileInformation>(),
+                folderInfo = new List<FolderInformation>()
+            };
+            var results = new List<IListBlobItem>();
+            do
+            {
+                var response = await directory.ListBlobsSegmentedAsync(continuationToken);
+                continuationToken = response.ContinuationToken;
+                results.AddRange(response.Results);
             }
+            while (continuationToken != null);
+
+            List<FileInformation> fileInformations = new List<FileInformation>();
+
+            foreach (var blob in results)
+            {
+                string blobType = string.Empty;
+                if (blob is CloudBlockBlob blockBlob)
+                {
+                    filesList.fileInfo.Add(new FileInformation
+                    {
+                        ID = Guid.NewGuid().ToString(),
+                        FileName = Path.GetFileName(blockBlob.Name),
+                        FileType = Path.GetExtension(blockBlob.Name),
+                        CreatedOn = blockBlob.Properties.Created.ToString(),
+                        CreatedBy = "Admin",
+                        Access = "Private",
+                        Size = (ulong)blockBlob.Properties.Length
+                    });
+                }
+                else
+                {
+                    var blobDir = blob as CloudBlobDirectory;
+                    string foldername = string.Empty;
+                    if (prefix != "")
+                    {
+                        foldername = blobDir.Prefix.Replace(prefix, "");
+                    }
+                    else foldername = blobDir.Prefix;
+                    filesList.folderInfo.Add(new FolderInformation
+                    {
+                        createdBy = "Admin",
+                        createdOn = "",
+                        Size = "",
+                        folderName = foldername
+                    });
+                }
+            }
+            return filesList;
         }
     }
 }

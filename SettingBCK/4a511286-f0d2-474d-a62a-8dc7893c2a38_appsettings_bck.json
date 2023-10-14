@@ -28,7 +28,7 @@
       "bucketname": "caafbucket",
       "apiconfigfilejson": "caaf-401707-046a2a295845.json"
     },
-    "Target": "azure"
+    "Target": "gcp"
   },
   "TempStoragePath": "F:\\UPWORKK\\OKTA\\TempPath"
 }

@@ -69,6 +69,17 @@ namespace StorageApp.Controllers
             resp.Message = "Azure Updated Successfully";
             return Ok(resp);
         }
+        [HttpPost("gcp")]
+        public IActionResult PostGCP(GCPOptions cloud)
+        {
+            if (cloud == null)
+            {
+                return BadRequest("Invalid cloud configuration data.");
+            }
+            cloudConfiguration.UpdateCloudSettings(cloud);
+            resp.Message = "Gcp Updated Successfully";
+            return Ok(resp);
+        }
         [HttpPost("target")]
         public IActionResult PostTarget(string target)
         {

@@ -11,8 +11,7 @@
       "BlobContainerName": "testcontainer1",
       "ListFilesQueryString": "restype=container&comp=list&",
       "SASToken": "sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-06-10T13:27:50Z&st=2023-10-06T05:27:50Z&spr=https&sig=SzbkNGTBAurKhR4lCOw4plGodWVqURWhd1CarXSL6d4%3D",
-      "StorageUrl": "https://testproject.blob.core.windows.net/",
-      "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=testproject;AccountKey=TdCuLYpPzxj3DA7GpjjXy4E+E13QFDH17WnGHc9t75vpwkLFrAWy840s2yuP5nIOoR27OsdLZ4Kt+AStlu1gfw==;EndpointSuffix=core.windows.net"
+      "StorageUrl": "https://testproject.blob.core.windows.net/"
     },
     "AWS": {
       "uploadUrl": "https://f5aodrz645.execute-api.us-east-2.amazonaws.com/",
@@ -28,7 +27,7 @@
       "bucketname": "caafbucket",
       "apiconfigfilejson": "caaf-401707-046a2a295845.json"
     },
-    "Target": "azure"
+    "Target": "gcp"
   },
   "TempStoragePath": "F:\\UPWORKK\\OKTA\\TempPath"
 }

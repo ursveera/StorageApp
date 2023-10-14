@@ -1,4 +1,9 @@
-﻿using Azure;
+﻿using Amazon;
+using Amazon.S3;
+using Amazon.S3.Model;
+using Amazon.S3.Transfer;
+using Azure;
+using Google.Apis.Storage.v1.Data;
 using Microsoft.Extensions.Options;
 using RestSharp;
 using StorageApp.CloudProvider.Config;
@@ -16,59 +21,124 @@ namespace StorageApp.Services
         private readonly List<ContentHeader>? UploadHeaders;
         private List<ContentHeader>? DownloadHeaders;
         private readonly CloudOptions? cloudoptions;
+
+        private readonly string accessKey;
+        private readonly string secretKey;
+        private readonly RegionEndpoint region = RegionEndpoint.USEast2;
+        private readonly AmazonS3Client s3Client;
         public AWSFileStorageService(CloudOptions options)
         {
             cloudoptions = options;
             BaseUrl = Path.Combine(cloudoptions.AWS.uploadUrl, cloudoptions.AWS.Stage, cloudoptions.AWS.BucketName, "{filename}");
             DownloadHeaders = new List<ContentHeader>() { new ContentHeader() { Key = "x-api-key", Value = cloudoptions.AWS.XAPIKEY } };
+            accessKey = cloudoptions.AWS.AccessKey;
+            secretKey = cloudoptions.AWS.SecretKey;
+            s3Client = new AmazonS3Client(accessKey, secretKey, region);
         }
 
-        public async Task<byte[]> DownloadFileAsync(string filename)
+        public async Task<byte[]> DownloadFileAsync(string fileName)
         {
-            var client = new RestClient(BaseUrl.AddFileNameToBaseUrl(filename));
-            var request = new RestRequest("", Method.Get);
-            DownloadHeaders?.ForEach(e => { request.AddHeader(e.Key, e.Value); });
-            var resp = await client.ExecuteAsync(request);
-            return resp.RawBytes;
-        }
-
-        public async Task<List<FileInformation>> ListAllFileAsync()
-        {
-            var client = new RestClient(BaseUrl.AddBucketName(""));
-            var request = new RestRequest("", Method.Get);
-            DownloadHeaders?.ForEach(e => { request.AddHeader(e.Key, e.Value); });
-            var resp = await client.ExecuteAsync(request);
-            if (!string.IsNullOrEmpty(resp.Content))
+            var request = new GetObjectRequest
             {
-                var serializer = new XmlSerializer(typeof(ListBucketResult));
-                using (var reader = new StringReader(resp.Content))
-                {
-                    var awsResp = (ListBucketResult)serializer.Deserialize(reader);
-                    var fileInformation = awsResp.Contents.Select(e => new FileInformation
-                    {
-                        FileName = e.Key,
-                        CreatedOn = e.LastModified.ToString(),
-                        FileType = Path.GetExtension(e.Key),
-                        Access = e.Owner.ID,
-                        CreatedBy = "Admin",
-                        Size=MimeMapping.FormatFileSize(e.Size)
-                    }).ToList();
-                    return fileInformation;
-                }
-            }
-            return new List<FileInformation>();
+                BucketName = cloudoptions.AWS.BucketName,
+                Key = fileName
+            };
+            using var response = await s3Client.GetObjectAsync(request);
+            using var memoryStream = new MemoryStream();
+            await response.ResponseStream.CopyToAsync(memoryStream);
+            return memoryStream.ToArray();
+        }
+
+        public async Task<List<FileInformation>> ListAllFileAsync(string prefix)
+        {
+            var request = new ListObjectsRequest
+            {
+                BucketName = cloudoptions.AWS.BucketName,
+                Prefix = prefix
+            };
+            var response = await s3Client.ListObjectsAsync(request);
+            var fileInformation = response.S3Objects.Select(e => new FileInformation
+            {
+                FileName = e.Key,
+                CreatedOn = e.LastModified.ToString(),
+                FileType = Path.GetExtension(e.Key),
+                Access = e.Owner.Id,
+                CreatedBy = "Admin",
+                Size =(ulong)e.Size
+            }).ToList();
+            return fileInformation;
         }
 
         public async Task UploadFileAsync(string filename, byte[] bytecontent)
         {
-            using (HttpClient httpClient = new HttpClient())
+            var request = new PutObjectRequest
             {
-                string fileContentsString = Convert.ToBase64String(bytecontent);
-                string contentType = MimeMapping.GetContentTypeFromExtension(filename);
-                ByteArrayContent byteArrayContent = new ByteArrayContent(bytecontent);
-                byteArrayContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
-                await httpClient.PutAsync(BaseUrl.AddFileNameToBaseUrl(filename), byteArrayContent);
-            }
+                BucketName = cloudoptions.AWS.BucketName,
+                Key = filename,
+                InputStream = new MemoryStream(bytecontent)
+            };
+            var response = await s3Client.PutObjectAsync(request);
+        }
+
+
+        public async Task<FilesList> ListAllFileAndFoldersAsync(string prefix)
+        {
+            List<FileInformation> fileInformationList = new List<FileInformation>();
+            List<FolderInformation> folderinformationList = new List<FolderInformation>();
+            List<ListObjectsResponse> s3Objects = new List<ListObjectsResponse>();
+            string storageName = "";
+            var request = new ListObjectsRequest
+            {
+                BucketName = cloudoptions.AWS.BucketName,
+                Prefix = prefix
+            };
+            var response = await s3Client.ListObjectsAsync(request);
+            var filesList = new FilesList
+            {
+                fileInfo = new List<FileInformation>(),
+                folderInfo = new List<FolderInformation>()
+            };
+            response.S3Objects.ForEach(e =>
+            {
+                if (prefix != "") storageName = e.Key.Replace(prefix, "");
+                else storageName = e.Key;
+                if (Path.GetDirectoryName(storageName) == "")
+                {
+                    storageName = Path.GetFileName(e.Key);
+                    filesList.fileInfo.Add(new FileInformation
+                    {
+                        FileName = storageName,
+                        FileType = e.Key.Substring(e.Key.LastIndexOf('.') + 1),
+                        CreatedOn =e.LastModified.ToString() ?? "",
+                        CreatedBy = "Admin",
+                        Access = e.Owner.Id,
+                        Size = (ulong)e.Size,
+                    });
+                }
+                else
+                {
+                    char target = '/';
+                    int prefixSlashCount = prefix.Count(e => e == target);
+                    if (e.Key.Count(e => e == target) == prefixSlashCount + 1 && Path.GetExtension(e.Key) == "")
+                    {
+                        int index = e.Key.IndexOf(prefix);
+                        if (index >= 0)
+                        {
+                            string foldername = e.Key.Remove(index, prefix.Length).Insert(index, "");
+                            folderinformationList.Add(new FolderInformation
+                            {
+                                createdBy = "Admin",
+                                createdOn = e.LastModified.ToString(),
+                                Size = e.Size.ToString(),
+                                folderName = foldername
+                            });
+                            filesList.folderInfo = folderinformationList;
+                        }
+                    }
+                }
+            });
+            return filesList;
+           
         }
     }
 }

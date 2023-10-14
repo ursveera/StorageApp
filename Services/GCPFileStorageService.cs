@@ -1,4 +1,7 @@
-﻿using Google.Apis.Auth.OAuth2;
+﻿using Amazon.S3.Model;
+using Google.Api.Gax.ResourceNames;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Storage.v1;
 using Google.Apis.Storage.v1.Data;
 using Google.Cloud.Storage.V1;
 using RestSharp;
@@ -8,6 +11,7 @@ using StorageApp.Models;
 using System.IO;
 using System.Net.Sockets;
 using System.Security.AccessControl;
+using System.Text.Json;
 
 namespace StorageApp.Services
 {
@@ -35,24 +39,78 @@ namespace StorageApp.Services
             }
         }
 
-        public async Task<List<FileInformation>> ListAllFileAsync()
+        public async Task<FilesList> ListAllFileAndFoldersAsync(string prefix)
         {
-            var objects=storage.ListObjectsAsync(cloudoptions.Gcp.bucketname);
+            var objects = storage.ListObjectsAsync(cloudoptions.Gcp.bucketname, prefix);
             List<FileInformation> fileInformationList = new List<FileInformation>();
-
+            List<FolderInformation> folderinformationList = new List<FolderInformation>();
+            List<Google.Apis.Storage.v1.Data.Object> objectss = new List<Google.Apis.Storage.v1.Data.Object>();
+            string storageName = "";
+            var filesList = new FilesList
+            {
+                fileInfo = new List<FileInformation>(),
+                folderInfo=new List<FolderInformation>()
+            };
             await foreach (var storageObject in objects)
             {
-                var fileInformation = new FileInformation
+                objectss.Add(storageObject);
+            }
+            foreach (var storageObject in objectss)
+            {
+                if (prefix != "") storageName = storageObject.Name.Replace(prefix, "");
+                else storageName = storageObject.Name;
+                if (Path.GetDirectoryName(storageName) =="")
+                {
+                    storageName = Path.GetFileName(storageObject.Name);
+                    filesList.fileInfo.Add(new FileInformation
+                    {
+                        FileName = storageName,
+                        FileType = storageObject.Name.Substring(storageObject.Name.LastIndexOf('.') + 1),
+                        CreatedOn = storageObject.TimeCreated?.ToString() ?? "",
+                        CreatedBy = "Admin",
+                        Access = "Full",
+                        Size = storageObject.Size,
+                    });
+                }
+                else
+                {
+                    char target = '/';
+                    int prefixSlashCount = prefix.Count(e => e == target);
+                    if (storageObject.Name.Count(e => e == target)== prefixSlashCount+1 && Path.GetExtension(storageObject.Name)=="")
+                    {
+                        int index = storageObject.Name.IndexOf(prefix);
+                        if (index >= 0)
+                        {
+                            string foldername = storageObject.Name.Remove(index, prefix.Length).Insert(index, "");
+                            folderinformationList.Add(new FolderInformation {
+                                createdBy="Admin",
+                                createdOn= storageObject.TimeCreated.ToString(),
+                                Size= storageObject.Size.ToString(),
+                                folderName= foldername
+                            });
+                            filesList.folderInfo = folderinformationList;
+                        }
+                    }
+                }
+            }
+            return filesList;
+        }
+
+        public async Task<List<FileInformation>> ListAllFileAsync(string prefix)
+        {
+            var objects=storage.ListObjectsAsync(cloudoptions.Gcp.bucketname,prefix);
+            List<FileInformation> fileInformationList = new List<FileInformation>();
+            await foreach (var storageObject in objects)
+            {
+              var fileInformation = new FileInformation
                 {
                     FileName = storageObject.Name,
                     CreatedBy = "Admin",
                     CreatedOn = storageObject.TimeCreated.ToString(),
                     FileType = Path.GetExtension(storageObject.Name),
                     Access = "Full",
-                    Size =MimeMapping.FormatFileSize(storageObject.Size)
-
+                    Size = storageObject.Size
                 };
-
                 fileInformationList.Add(fileInformation);
             }
             return fileInformationList;

@@ -6,5 +6,7 @@
         public string BucketName { get; set; }
         public string Stage { get; set; }
         public string XAPIKEY { get; set; }
+        public string SecretKey { get; set; }
+        public string AccessKey { get; set; }
     }
 }

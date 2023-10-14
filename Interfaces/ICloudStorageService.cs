@@ -7,7 +7,8 @@ namespace StorageApp
     {
         Task UploadFileAsync(string filename, byte[] content);
         Task<byte[]> DownloadFileAsync(string filename);
-        Task<List<FileInformation>> ListAllFileAsync();
+        Task<List<FileInformation>> ListAllFileAsync(string prefix);
+        Task<FilesList> ListAllFileAndFoldersAsync(string prefix);
 
     }
        
