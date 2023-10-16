@@ -43,7 +43,7 @@ namespace StorageApp.Services
             JObject updatedAzureOptionsObject = JObject.FromObject(cloudOptions.Azure);
             JObject updatedAWSOptionsObject = JObject.FromObject(cloudOptions.AWS);
             JObject updatedGcpOptionsObject = JObject.FromObject(cloudOptions.Gcp);
-            JObject updatedNoCloudOptionsObject = JObject.FromObject(cloudOptions.Gcp);
+            JObject updatedNoCloudOptionsObject = JObject.FromObject(cloudOptions.NoCloud);
             jObject["Cloud"]["AWS"] = updatedAWSOptionsObject;
             jObject["Cloud"]["AZURE"] = updatedAzureOptionsObject;
             jObject["Cloud"]["GCP"] = updatedGcpOptionsObject;
