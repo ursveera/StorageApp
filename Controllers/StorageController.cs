@@ -108,17 +108,17 @@ namespace StorageApp.Controllers
                 pageSize = Math.Max(1, pageSize ?? defaultpageSize);
                 int startIndex = (page - 1) * pageSize ?? defaultpageSize;
                 List<FileInformation> files = allFiles.Skip(startIndex).Take(pageSize ?? defaultpageSize).ToList();
-                var result = new
-                {
-                    TotalItems = totalItems,
-                    TotalPages = totalPages,
-                    Page = page,
-                    PageSize = pageSize,
-                    Files = files
-                };
-                return Ok(result);
+                filesAndFolders.fileInfo = files;
+                filesAndFolders.TotalItems = totalItems;
+                filesAndFolders.TotalPages = totalPages;
+                filesAndFolders.Page = page;
+                filesAndFolders.PageSize = pageSize;
+                return Ok(filesAndFolders);
             }
-            filesAndFolders.fileInfo = allFiles;
+            else
+            {
+                filesAndFolders.fileInfo = allFiles;
+            }
             return Ok(filesAndFolders);
         }
         //[HttpPost]

@@ -10,7 +10,7 @@
         public string access { get; set; }
         public ulong? size { get; set; }
         public string fileSize { get; set; }
-       
+
     }
     public class FolderInformation
     {
@@ -19,8 +19,13 @@
         public string size { get; set; }
         public string folderName { get; set; }
     }
-    public class FilesList {
+    public class FilesList
+    {
         public List<FileInformation> fileInfo { get; set; }
         public List<FolderInformation> folderInfo { get; set; }
+        public int? TotalItems { get; set; }
+        public int? TotalPages { get; set; }
+        public int? Page { get; set; }
+        public int? PageSize { get; set; }
     }
 }
