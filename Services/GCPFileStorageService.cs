@@ -29,6 +29,12 @@ namespace StorageApp.Services
             googlecredential = GoogleCredential.FromFile(configFilePath);
             storage = StorageClient.Create(googlecredential);
         }
+
+        public async Task DeleteFileAsync(string filename)
+        {
+            await storage.DeleteObjectAsync(cloudoptions.Gcp.bucketname,filename);
+        }
+
         public async Task<byte[]> DownloadFileAsync(string filename)
         {
             using (var memoryStream = new System.IO.MemoryStream())

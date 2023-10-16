@@ -25,6 +25,8 @@ namespace StorageApp.Factory
                     return new AzureFileStorageService(_options);
                 case "gcp":
                     return new GCPFileStorageService(_options);
+                case "nocloud":
+                    return new NoCloudFileStorageService(_options);
                 default:
                     throw new ArgumentException("Invalid file storage provider.");
             }

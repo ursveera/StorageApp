@@ -46,6 +46,17 @@ namespace StorageApp.Controllers
             string DownloadFileName = Path.GetFileNameWithoutExtension(fileName) + Guid.NewGuid().ToString() + "_" + Path.GetExtension(fileName);
             return File(data, MimeMapping.GetContentTypeFromExtension(fileName), DownloadFileName);
         }
+        [HttpGet]
+        public async Task<IActionResult> Delete(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("Filename is missing.");
+            }
+            var Response = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
+            await Response.DeleteFileAsync(fileName);
+            return Ok("File Deleted");
+        }
         [HttpPost]
         public async Task<IActionResult> Put(IFormFile file)
         {

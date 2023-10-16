@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Azure.Storage.Blobs;
 using Google.Api.Gax.ResourceNames;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
@@ -21,6 +22,10 @@ namespace StorageApp.Services
         private readonly CloudStorageAccount storageAccount;
         private readonly CloudBlobClient blobClient;
         private readonly CloudBlobContainer blobContainer;
+
+        private readonly BlobServiceClient blobServiceClient;
+        private readonly BlobContainerClient containerClient;
+
         public AzureFileStorageService(CloudOptions options)
         {
             cloudoptions = options;
@@ -29,6 +34,8 @@ namespace StorageApp.Services
             CloudStorageAccount.TryParse(storageConnectionString, out storageAccount);
             blobClient = storageAccount.CreateCloudBlobClient();
             blobContainer = blobClient.GetContainerReference(containerName);
+            blobServiceClient = new BlobServiceClient(storageConnectionString);
+            containerClient = blobServiceClient.GetBlobContainerClient(containerName);
         }
 
         public async Task<byte[]> DownloadFileAsync(string filename)
@@ -126,6 +133,12 @@ namespace StorageApp.Services
                 }
             }
             return filesList;
+        }
+
+        public async Task DeleteFileAsync(string filename)
+        {
+            BlobClient blobClient = containerClient.GetBlobClient(filename);
+            await blobClient.DeleteIfExistsAsync();
         }
     }
 }

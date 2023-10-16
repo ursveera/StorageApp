@@ -53,6 +53,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.7.205.9" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
+    <PackageReference Include="FluentFTP" Version="48.0.1" />
     <PackageReference Include="Google.Cloud.Storage.V1" Version="4.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="RestSharp" Version="110.2.0" />

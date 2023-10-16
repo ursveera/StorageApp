@@ -9,6 +9,7 @@ namespace StorageApp.Interfaces
         void UpdateCloudSettings(AWSOptions aws);
         void UpdateCloudSettings(AZUREOptions azure);
         void UpdateCloudSettings(GCPOptions gcp);
+        void UpdateCloudSettings(NOCLOUDOptions nocloud);
         void UpdateCloudSettings(string  target);
     }
 }

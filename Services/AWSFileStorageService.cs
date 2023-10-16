@@ -140,5 +140,16 @@ namespace StorageApp.Services
             return filesList;
            
         }
+
+        public async Task DeleteFileAsync(string filename)
+        {
+            var deleteObjectRequest = new Amazon.S3.Model.DeleteObjectRequest
+            {
+                BucketName = cloudoptions.AWS.BucketName,
+                Key = filename
+            };
+            var response = await s3Client.DeleteObjectAsync(deleteObjectRequest);
+
+        }
     }
 }
