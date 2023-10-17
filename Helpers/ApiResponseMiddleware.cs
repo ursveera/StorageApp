@@ -40,6 +40,7 @@ namespace StorageApp.Helpers
                 if (context.Response.StatusCode == (int)HttpStatusCode.OK ||
                     context.Response.StatusCode == (int)HttpStatusCode.BadRequest ||
                     context.Response.StatusCode == (int)HttpStatusCode.NotFound ||
+                    context.Response.StatusCode == (int)HttpStatusCode.Conflict ||
                     context.Response.StatusCode == (int)HttpStatusCode.InternalServerError)
                 {
                     if (!string.IsNullOrEmpty(responseBody))

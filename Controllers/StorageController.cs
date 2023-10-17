@@ -70,35 +70,47 @@ namespace StorageApp.Controllers
             return Ok("Folder Created");
         }
         [HttpPost]
-        public async Task<IActionResult> Put(IFormFile[] files, bool? overridefile = false)
+        public async Task<IActionResult> Put(IFormFile[] files, bool? overridefile = false, bool? rename = false)
         {
-            int TotalFilesCount = 0;
+            List<string> existFiles = new List<string>();
+            List<string> uploadedFiles = new List<string>();
+            var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
             
-            foreach (var file in files)
+            for (int i = 0; i < files.Length; i++)
             {
-                if (file == null || file.Length == 0)
-                {
-                    return BadRequest("No file uploaded.");
-                }
                 using (var memoryStream = new MemoryStream())
                 {
-                    await file.CopyToAsync(memoryStream);
+                    await files[i].CopyToAsync(memoryStream);
                     byte[] fileData = memoryStream.ToArray();
-                    string fileName = file.FileName;
-                    var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
+                    string fileName = files[i].FileName;
+                    if (rename == true)
+                    {
+                        fileName = Rename(fileName);
+                    }
                     if (cloudStorageService.CheckExists(fileName).Result && overridefile == false)
                     {
-                        return Ok("File Exists");
+                        existFiles.Add(fileName);
                     }
-                    await cloudStorageService.UploadFileAsync(fileName, fileData);
-                    TotalFilesCount++;
+                    else
+                    {
+                        await cloudStorageService.UploadFileAsync(fileName, fileData);
+                        uploadedFiles.Add(fileName);
+                    }
                 }
             }
-            if (TotalFilesCount == files.Count())
+            if (existFiles.Count() > 0)
             {
-                return Ok("Upload Success");
+                return Conflict(new { fileExists = existFiles, uploadedFiles = uploadedFiles });
             }
-            return Ok("No File Uploaded");
+            else if (uploadedFiles.Count() > 0)
+            {
+                return Ok(new { uploadedFiles = uploadedFiles });
+            }
+            else
+            {
+                return BadRequest("No Files Uploaded");
+            }
+
         }
         [HttpPost]
         public async Task<IActionResult> List(string cloudName, string? prefix = "", string? filterByColumn = "", string? filterValue = "", string? orderBy = "asc", int? page = 0, int? pageSize = 0)
@@ -144,7 +156,7 @@ namespace StorageApp.Controllers
                 pageSize = Math.Max(1, pageSize ?? defaultpageSize);
                 int startIndex = (page - 1) * pageSize ?? defaultpageSize;
                 List<FolderInformation> folders = filesAndFolders.folderInfo.Skip(startIndex).Take(pageSize ?? defaultpageSize).ToList();
-                List<FileInformation> files = allFiles.Skip(startIndex).Take((pageSize- folders.Count()) ?? defaultpageSize).ToList();
+                List<FileInformation> files = allFiles.Skip(startIndex).Take((pageSize - folders.Count()) ?? defaultpageSize).ToList();
                 filesAndFolders.fileInfo = files;
                 filesAndFolders.folderInfo = folders;
                 filesAndFolders.TotalItems = totalItems;
@@ -158,6 +170,19 @@ namespace StorageApp.Controllers
                 filesAndFolders.fileInfo = allFiles;
             }
             return Ok(filesAndFolders);
+        }
+        [NonAction]
+         string Rename(string fileName)
+        {
+            var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
+            bool eFiles = cloudStorageService.CheckExists(fileName).Result;
+            string newfilename = "";
+            if (eFiles)
+            {
+                fileName = fileName.Replace(Path.GetExtension(fileName), $"_copy{Path.GetExtension(fileName)}");
+                return newfilename=Rename(fileName);
+            }
+            return fileName;
         }
     }
 }

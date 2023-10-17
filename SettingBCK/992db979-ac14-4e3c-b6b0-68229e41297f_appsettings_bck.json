@@ -35,7 +35,7 @@
       "host": "ftp://eu-central-1.sftpcloud.io/",
       "ftpsendpoint": "ftps://waws-prod-blu-445.ftp.azurewebsites.windows.net/site/wwwroot"
     },
-    "Target": "gcp"
+    "Target": "aws"
   },
   "TempStoragePath": "F:\\UPWORKK\\OKTA\\TempPath"
 }
