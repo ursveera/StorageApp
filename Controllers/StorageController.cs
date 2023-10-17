@@ -47,7 +47,7 @@ namespace StorageApp.Controllers
             string DownloadFileName = Path.GetFileNameWithoutExtension(fileName) + Guid.NewGuid().ToString() + "_" + Path.GetExtension(fileName);
             return File(data, MimeMapping.GetContentTypeFromExtension(fileName), DownloadFileName);
         }
-        [HttpPost("Delete")]
+        [HttpPost]
         public async Task<IActionResult> Delete(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))
@@ -58,7 +58,7 @@ namespace StorageApp.Controllers
             await Response.DeleteFileAsync(fileName);
             return Ok("File Deleted");
         }
-        [HttpPost("Create")]
+        [HttpPost]
         public async Task<IActionResult> Create(string folderpath)
         {
             if (string.IsNullOrEmpty(folderpath))
