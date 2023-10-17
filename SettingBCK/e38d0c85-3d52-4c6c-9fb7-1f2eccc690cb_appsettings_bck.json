@@ -32,10 +32,10 @@
       "fileserverpath": "",
       "username": "2742b4dd98264f1895904379edb5a093",
       "password": "9OTq4AvrdoiMGXa6BCBp5O6l4WK92iLJ",
-      "host": "ftp://eu-central-1.sftpcloud.io/",
+      "host": "ftp://eu-central-1.sftpcloud.io",
       "ftpsendpoint": "ftps://waws-prod-blu-445.ftp.azurewebsites.windows.net/site/wwwroot"
     },
-    "Target": "aws"
+    "Target": "nocloud"
   },
   "TempStoragePath": "F:\\UPWORKK\\OKTA\\TempPath"
 }

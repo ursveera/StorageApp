@@ -6,6 +6,7 @@
         public string username { get; set; }
         public string password { get; set; }
         public string ftpsendpoint { get; set; }
+        public string host { get; set; }
 
     }
 }

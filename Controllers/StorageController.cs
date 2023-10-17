@@ -37,6 +37,7 @@ namespace StorageApp.Controllers
                 return BadRequest("Filename is missing.");
             }
             var Response = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
+
             byte[] _file = await Response.DownloadFileAsync(fileName);
             if (_file == null || _file == null || _file.Length == 0)
             {
@@ -46,7 +47,7 @@ namespace StorageApp.Controllers
             string DownloadFileName = Path.GetFileNameWithoutExtension(fileName) + Guid.NewGuid().ToString() + "_" + Path.GetExtension(fileName);
             return File(data, MimeMapping.GetContentTypeFromExtension(fileName), DownloadFileName);
         }
-        [HttpGet]
+        [HttpPost("Delete")]
         public async Task<IActionResult> Delete(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))
@@ -57,26 +58,50 @@ namespace StorageApp.Controllers
             await Response.DeleteFileAsync(fileName);
             return Ok("File Deleted");
         }
-        [HttpPost]
-        public async Task<IActionResult> Put(IFormFile file)
+        [HttpPost("Create")]
+        public async Task<IActionResult> Create(string folderpath)
         {
-            if (file == null || file.Length == 0)
+            if (string.IsNullOrEmpty(folderpath))
             {
-                return BadRequest("No file uploaded.");
+                return BadRequest("Folderpath is missing.");
             }
-            using (var memoryStream = new MemoryStream())
-            {
-                await file.CopyToAsync(memoryStream);
-                byte[] fileData = memoryStream.ToArray();
-
-                string fileName = file.FileName;
-                var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
-                await cloudStorageService.UploadFileAsync(fileName, fileData);
-                return Ok("Upload Success");
-            }
+            var Response = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
+            await Response.CreateFolderAsync(folderpath);
+            return Ok("Folder Created");
         }
         [HttpPost]
-        public async Task<IActionResult> List(string cloudName,string? prefix="",string? filterByColumn= "",string? filterValue="",string? orderBy="asc", int? page = 0, int? pageSize = 0)
+        public async Task<IActionResult> Put(IFormFile[] files, bool? overridefile = false)
+        {
+            int TotalFilesCount = 0;
+            
+            foreach (var file in files)
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("No file uploaded.");
+                }
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    byte[] fileData = memoryStream.ToArray();
+                    string fileName = file.FileName;
+                    var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
+                    if (cloudStorageService.CheckExists(fileName).Result && overridefile == false)
+                    {
+                        return Ok("File Exists");
+                    }
+                    await cloudStorageService.UploadFileAsync(fileName, fileData);
+                    TotalFilesCount++;
+                }
+            }
+            if (TotalFilesCount == files.Count())
+            {
+                return Ok("Upload Success");
+            }
+            return Ok("No File Uploaded");
+        }
+        [HttpPost]
+        public async Task<IActionResult> List(string cloudName, string? prefix = "", string? filterByColumn = "", string? filterValue = "", string? orderBy = "asc", int? page = 0, int? pageSize = 0)
         {
             var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudName);
             var response = await cloudStorageService.ListAllFileAsync(prefix);
@@ -86,11 +111,11 @@ namespace StorageApp.Controllers
             if (page > 0 && pageSize > 0)
             {
                 int totalItems = allFiles.Count;
-                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize?? defaultpageSize);
-                page = Math.Max(1, Math.Min(totalPages, page?? defaultPage));
-                pageSize = Math.Max(1, pageSize?? defaultpageSize);
-                int startIndex = (page - 1) * pageSize?? defaultpageSize;
-                List<FileInformation> files = allFiles.Skip(startIndex).Take(pageSize?? defaultpageSize).ToList();
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize ?? defaultpageSize);
+                page = Math.Max(1, Math.Min(totalPages, page ?? defaultPage));
+                pageSize = Math.Max(1, pageSize ?? defaultpageSize);
+                int startIndex = (page - 1) * pageSize ?? defaultpageSize;
+                List<FileInformation> files = allFiles.Skip(startIndex).Take(pageSize ?? defaultpageSize).ToList();
                 var result = new
                 {
                     TotalItems = totalItems,
@@ -118,8 +143,10 @@ namespace StorageApp.Controllers
                 page = Math.Max(1, Math.Min(totalPages, page ?? defaultPage));
                 pageSize = Math.Max(1, pageSize ?? defaultpageSize);
                 int startIndex = (page - 1) * pageSize ?? defaultpageSize;
-                List<FileInformation> files = allFiles.Skip(startIndex).Take(pageSize ?? defaultpageSize).ToList();
+                List<FolderInformation> folders = filesAndFolders.folderInfo.Skip(startIndex).Take(pageSize ?? defaultpageSize).ToList();
+                List<FileInformation> files = allFiles.Skip(startIndex).Take((pageSize- folders.Count()) ?? defaultpageSize).ToList();
                 filesAndFolders.fileInfo = files;
+                filesAndFolders.folderInfo = folders;
                 filesAndFolders.TotalItems = totalItems;
                 filesAndFolders.TotalPages = totalPages;
                 filesAndFolders.Page = page;
@@ -132,54 +159,5 @@ namespace StorageApp.Controllers
             }
             return Ok(filesAndFolders);
         }
-        //[HttpPost]
-        //public async Task<IActionResult> ListByAsc(string columnname)
-        //{
-        //    var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
-        //    var response = await cloudStorageService.ListAllFileAsync();
-        //    List<FileInformation> files = response.ToList().OderByDynamicProperty<FileInformation>(columnname, "asc").FormatFileSize();
-        //    return Ok(files);
-        //}        
-        //[HttpPost]
-        //public async Task<IActionResult> Filter(string filterbycolumn, string value,string order)
-        //{
-        //    var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
-        //    var response = await cloudStorageService.ListAllFileAsync();
-        //    List<FileInformation> files = response.ToList().FilterByDynamicProperty<FileInformation>(filterbycolumn, value).FormatFileSize();
-        //    return Ok(files);
-        //}
-        //[HttpPost]
-        //public async Task<IActionResult> ListPaginated(int page = 1, int pageSize = 10)
-        //{
-        //    var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
-        //    var response = await cloudStorageService.ListAllFileAsync();
-        //    List<FileInformation> allFiles = response.FormatFileSize();
-
-        //    // Calculate the total number of items and the number of pages.
-        //    int totalItems = allFiles.Count;
-        //    int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-
-        //    // Ensure that page and pageSize are within valid ranges.
-        //    page = Math.Max(1, Math.Min(totalPages, page));
-        //    pageSize = Math.Max(1, pageSize);
-
-        //    // Calculate the starting index for the current page.
-        //    int startIndex = (page - 1) * pageSize;
-
-        //    // Get the files for the current page.
-        //    List<FileInformation> files = allFiles.Skip(startIndex).Take(pageSize).ToList();
-
-        //    // Create a response object that includes pagination information.
-        //    var result = new
-        //    {
-        //        TotalItems = totalItems,
-        //        TotalPages = totalPages,
-        //        Page = page,
-        //        PageSize = pageSize,
-        //        Files = files
-        //    };
-
-        //    return Ok(result);
-        //}
     }
 }

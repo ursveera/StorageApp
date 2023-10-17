@@ -3,6 +3,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Azure;
+using Google.Api.Gax.ResourceNames;
 using Google.Apis.Storage.v1.Data;
 using Microsoft.Extensions.Options;
 using RestSharp;
@@ -64,20 +65,21 @@ namespace StorageApp.Services
                 fileType = Path.GetExtension(e.Key),
                 access = e.Owner.Id,
                 createdBy = "Admin",
-                size =(ulong)e.Size
+                size = (ulong)e.Size
             }).ToList();
             return fileInformation;
         }
 
         public async Task UploadFileAsync(string filename, byte[] bytecontent)
         {
-            var request = new PutObjectRequest
+
+            var pubObjectrequest = new PutObjectRequest
             {
                 BucketName = cloudoptions.AWS.BucketName,
                 Key = filename,
                 InputStream = new MemoryStream(bytecontent)
             };
-            var response = await s3Client.PutObjectAsync(request);
+            var response = await s3Client.PutObjectAsync(pubObjectrequest);
         }
 
 
@@ -87,12 +89,12 @@ namespace StorageApp.Services
             List<FolderInformation> folderinformationList = new List<FolderInformation>();
             List<ListObjectsResponse> s3Objects = new List<ListObjectsResponse>();
             string storageName = "";
-            var request = new ListObjectsRequest
+            var request = new ListObjectsV2Request
             {
                 BucketName = cloudoptions.AWS.BucketName,
                 Prefix = prefix
             };
-            var response = await s3Client.ListObjectsAsync(request);
+            var response = await s3Client.ListObjectsV2Async(request);
             var filesList = new FilesList
             {
                 fileInfo = new List<FileInformation>(),
@@ -109,9 +111,9 @@ namespace StorageApp.Services
                     {
                         fileName = storageName,
                         fileType = e.Key.Substring(e.Key.LastIndexOf('.') + 1),
-                        createdOn =e.LastModified.ToString() ?? "",
+                        createdOn = e.LastModified.ToString() ?? "",
                         createdBy = "Admin",
-                        access = e.Owner.Id,
+                        access = e.Owner?.Id,
                         size = (ulong)e.Size,
                     });
                 }
@@ -130,7 +132,7 @@ namespace StorageApp.Services
                                 createdBy = "Admin",
                                 createdOn = e.LastModified.ToString(),
                                 size = e.Size.ToString(),
-                               folderName = foldername
+                                folderName = foldername
                             });
                             filesList.folderInfo = folderinformationList;
                         }
@@ -138,7 +140,7 @@ namespace StorageApp.Services
                 }
             });
             return filesList;
-           
+
         }
 
         public async Task DeleteFileAsync(string filename)
@@ -150,6 +152,48 @@ namespace StorageApp.Services
             };
             var response = await s3Client.DeleteObjectAsync(deleteObjectRequest);
 
+        }
+
+        public async Task CreateFolderAsync(string folderpath)
+        {
+            if (!string.IsNullOrEmpty(folderpath))
+            {
+                var foldercreate = new PutObjectRequest
+                {
+                    BucketName = cloudoptions.AWS.BucketName,
+                    Key = folderpath
+                };
+                var foldercreateresponse = await s3Client.PutObjectAsync(foldercreate);
+            }
+        }
+
+        public async Task<bool> CheckExists(string filename)
+        {
+            try
+            {
+                var request = new GetObjectRequest
+                {
+                    BucketName = cloudoptions.AWS.BucketName,
+                    Key = filename
+                };
+                using var response = await s3Client.GetObjectAsync(request);
+                using (var memoryStream = new MemoryStream())
+                {
+                    await response.ResponseStream.CopyToAsync(memoryStream);
+                    if (memoryStream.ToArray().Length <= 0)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch (Amazon.S3.AmazonS3Exception e)
+            {
+                return false;
+            }
         }
     }
 }

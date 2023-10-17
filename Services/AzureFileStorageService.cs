@@ -1,4 +1,5 @@
-﻿using Azure;
+﻿using Amazon.S3.Model;
+using Azure;
 using Azure.Storage.Blobs;
 using Google.Api.Gax.ResourceNames;
 using Microsoft.Extensions.Options;
@@ -139,6 +140,38 @@ namespace StorageApp.Services
         {
             BlobClient blobClient = containerClient.GetBlobClient(filename);
             await blobClient.DeleteIfExistsAsync();
+        }
+
+        public async Task CreateFolderAsync(string folderpath)
+        {
+            BlobClient blobClient = containerClient.GetBlobClient(folderpath + ".nofile");
+            await blobClient.UploadAsync(new System.IO.MemoryStream(Array.Empty<byte>()), true);
+        }
+
+        public async Task<bool> CheckExists(string filename)
+        {
+            try
+            {
+                CloudBlockBlob cloudBlockBlob = blobContainer.GetBlockBlobReference(filename);
+                var memoryStream = new MemoryStream();
+                await cloudBlockBlob.DownloadToStreamAsync(memoryStream);
+                memoryStream.Position = 0;
+                memoryStream.ToArray();
+                if (memoryStream.Length <= 0)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+
+
+            }
+            catch (Microsoft.WindowsAzure.Storage.StorageException e)
+            {
+                return false;
+            }
         }
     }
 }
