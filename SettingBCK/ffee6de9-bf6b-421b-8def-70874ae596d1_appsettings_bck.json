@@ -39,12 +39,12 @@
   },
   "RDBMS": {
     "MicrosoftSQLServer": {
-      "connectionstring": "string"
+      "connectionstring": "ms"
     },
     "MySQL": {
-      "connectionstring": "string"
+      "connectionstring": "mysql"
     },
-    "Target": "string"
+    "Target": "MicrosoftSQLServer"
   },
   "TempStoragePath": "F:\\UPWORKK\\OKTA\\TempPath"
 }

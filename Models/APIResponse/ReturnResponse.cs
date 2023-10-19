@@ -1,4 +1,4 @@
-﻿namespace OKTA.Models.Response
+﻿namespace StorageApp.Models.Response
 {
     public class ReturnResponse
     {

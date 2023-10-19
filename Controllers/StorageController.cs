@@ -75,7 +75,7 @@ namespace StorageApp.Controllers
             List<string> existFiles = new List<string>();
             List<string> uploadedFiles = new List<string>();
             var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
-            
+
             for (int i = 0; i < files.Length; i++)
             {
                 using (var memoryStream = new MemoryStream())
@@ -141,11 +141,12 @@ namespace StorageApp.Controllers
             return Ok(allFiles);
         }
         [HttpPost]
-        public async Task<IActionResult> ListFilesAndFolders(string cloudName, string? folderName = "", string? filterByColumn = "FileName", string? filterValue = "", string? orderBy = "asc", string? oderByColumn = "FileName", int? page = 0, int? pageSize = 0)
+        public async Task<IActionResult> ListFilesAndFolders(string cloudName, string? folderName = "", string? filterByColumn = "fileName", string? filterValue = "", string? orderBy = "asc", string? oderByColumn = "fileName", int? page = 0, int? pageSize = 0)
         {
             var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudName);
             var filesAndFolders = await cloudStorageService.ListAllFileAndFoldersAsync(folderName);
             List<FileInformation> allFiles = filesAndFolders.fileInfo.OderByDynamicProperty<FileInformation>(oderByColumn, orderBy).FilterByDynamicProperty<FileInformation>(filterByColumn, filterValue).FormatFileSize();
+            List<FolderInformation> allFolders = filesAndFolders.folderInfo.OderByDynamicProperty<FolderInformation>((oderByColumn == "fileName") ? "folderName" : oderByColumn, orderBy).FilterByDynamicProperty<FolderInformation>((filterByColumn == "fileName") ? "folderName" : filterByColumn, filterValue);
             int defaultpageSize = 10;
             int defaultPage = 1;
             if (page > 0 && pageSize > 0)
@@ -155,7 +156,7 @@ namespace StorageApp.Controllers
                 page = Math.Max(1, Math.Min(totalPages, page ?? defaultPage));
                 pageSize = Math.Max(1, pageSize ?? defaultpageSize);
                 int startIndex = (page - 1) * pageSize ?? defaultpageSize;
-                List<FolderInformation> folders = filesAndFolders.folderInfo.Skip(startIndex).Take(pageSize ?? defaultpageSize).ToList();
+                List<FolderInformation> folders = allFolders.Skip(startIndex).Take(pageSize ?? defaultpageSize).ToList();
                 List<FileInformation> files = allFiles.Skip(startIndex).Take((pageSize - folders.Count()) ?? defaultpageSize).ToList();
                 filesAndFolders.fileInfo = files;
                 filesAndFolders.folderInfo = folders;
@@ -168,11 +169,12 @@ namespace StorageApp.Controllers
             else
             {
                 filesAndFolders.fileInfo = allFiles;
+                filesAndFolders.folderInfo = allFolders;
             }
             return Ok(filesAndFolders);
         }
         [NonAction]
-         string Rename(string fileName)
+        string Rename(string fileName)
         {
             var cloudStorageService = _cloudStorageServiceFactory.GetFileStorageService(cloudoptions.Target);
             bool eFiles = cloudStorageService.CheckExists(fileName).Result;
@@ -180,7 +182,7 @@ namespace StorageApp.Controllers
             if (eFiles)
             {
                 fileName = fileName.Replace(Path.GetExtension(fileName), $"_copy{Path.GetExtension(fileName)}");
-                return newfilename=Rename(fileName);
+                return newfilename = Rename(fileName);
             }
             return fileName;
         }
