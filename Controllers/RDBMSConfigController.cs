@@ -19,13 +19,13 @@ namespace StorageApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetRDBMSonfiguration(string cloudname)
+        public async Task<IActionResult> GetRDBMSonfiguration(string rdbmsname)
         {
-            if (string.IsNullOrEmpty(cloudname))
+            if (string.IsNullOrEmpty(rdbmsname))
             {
                 return BadRequest("Cloud name is missing.");
             }
-            var config = await rdbmsConfiguration.GetRDBMSConfig(cloudname);
+            var config = await rdbmsConfiguration.GetRDBMSConfig(rdbmsname);
             if (config == null)
             {
                 return NotFound("RDBMS configuration not found.");
