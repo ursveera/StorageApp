@@ -50,7 +50,10 @@ namespace StorageApp.Services
 
         public async Task DeleteFileAsync(string filename)
         {
-            await storage.DeleteObjectAsync(cloudoptions.Gcp.bucketname, filename);
+            foreach (var storageObject in storage.ListObjects(cloudoptions.Gcp.bucketname, filename))
+            {
+                await storage.DeleteObjectAsync(storageObject);
+            }
         }
 
         public async Task<byte[]> DownloadFileAsync(string filename)
@@ -209,5 +212,6 @@ namespace StorageApp.Services
                 return false;
             }
         }
+
     }
 }

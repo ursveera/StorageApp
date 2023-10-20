@@ -40,7 +40,7 @@ public class CustomExceptionFilterAttribute : Attribute, IExceptionFilter
         }
         else
         {
-            context.Result = new ObjectResult(new { ErrorMessage = context.Exception.Message })
+            context.Result = new ObjectResult(new { ErrorMessage = "An error occurred." })
             {
                 StatusCode = 500
             };

@@ -151,13 +151,21 @@ namespace StorageApp.Services
 
         public async Task DeleteFileAsync(string filename)
         {
-            var deleteObjectRequest = new Amazon.S3.Model.DeleteObjectRequest
+            var listRequest = new ListObjectsV2Request
             {
                 BucketName = cloudoptions.AWS.BucketName,
-                Key = filename
+                Prefix = filename
             };
-            var response = await s3Client.DeleteObjectAsync(deleteObjectRequest);
-
+            ListObjectsV2Response listResponse = await s3Client.ListObjectsV2Async(listRequest);
+            foreach (var s3Object in listResponse.S3Objects)
+            {
+                var deleteRequest = new DeleteObjectRequest
+                {
+                    BucketName = cloudoptions.AWS.BucketName,
+                    Key = s3Object.Key
+                };
+                await s3Client.DeleteObjectAsync(deleteRequest);
+            }
         }
 
         public async Task CreateFolderAsync(string folderpath)

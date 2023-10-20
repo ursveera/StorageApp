@@ -140,6 +140,16 @@ namespace StorageApp.Services
         {
             BlobClient blobClient = containerClient.GetBlobClient(filename);
             await blobClient.DeleteIfExistsAsync();
+
+            var containerClient1 = blobServiceClient.GetBlobContainerClient(containerName);
+
+            await foreach (var blobItem in containerClient.GetBlobsAsync())
+            {
+                if (blobItem.Name.StartsWith(filename) && IsDirectChild(blobItem.Name, filename))
+                {
+                    await containerClient.DeleteBlobIfExistsAsync(blobItem.Name);
+                }
+            }
         }
 
         public async Task CreateFolderAsync(string folderpath)
@@ -172,6 +182,11 @@ namespace StorageApp.Services
             {
                 return false;
             }
+        }
+        private bool IsDirectChild(string blobName, string folderName)
+        {
+            var path = blobName.Split('/');
+            return path.Length == folderName.Split('/').Length + 1;
         }
     }
 }

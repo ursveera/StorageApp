@@ -89,6 +89,7 @@ namespace StorageApp.Services
                 {
                     string[] tokens = singleline.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     string fileName = tokens[8];
+                    if (tokens.Length>9) fileName = tokens[8] +" "+ tokens[9];
                     string fileSize = tokens[4];
                     string fileCreatedOn = tokens[5] + " " + tokens[6] + " " + tokens[7];
                     if (string.IsNullOrEmpty(Path.GetExtension(fileName)))
@@ -120,10 +121,20 @@ namespace StorageApp.Services
 
         public async Task DeleteFileAsync(string filename)
         {
-            var ftpWebRequest = (FtpWebRequest)WebRequest.Create(cloudoptions.NoCloud.host + filename);
-            ftpWebRequest.Method = WebRequestMethods.Ftp.DeleteFile;
-            ftpWebRequest.Credentials = new NetworkCredential(cloudoptions.NoCloud.username, cloudoptions.NoCloud.password);
-            using (var response = (FtpWebResponse)await ftpWebRequest.GetResponseAsync()) ;
+            if (Path.GetExtension(filename) != "")
+            {
+                var ftpWebRequest = (FtpWebRequest)WebRequest.Create(cloudoptions.NoCloud.host + filename);
+                ftpWebRequest.Method = WebRequestMethods.Ftp.DeleteFile;
+                ftpWebRequest.Credentials = new NetworkCredential(cloudoptions.NoCloud.username, cloudoptions.NoCloud.password);
+                using (var response = (FtpWebResponse)await ftpWebRequest.GetResponseAsync()) ;
+            }
+            else
+            {
+                var ftpWebRequest = (FtpWebRequest)WebRequest.Create(cloudoptions.NoCloud.host + filename);
+                ftpWebRequest.Method = WebRequestMethods.Ftp.RemoveDirectory;
+                ftpWebRequest.Credentials = new NetworkCredential(cloudoptions.NoCloud.username, cloudoptions.NoCloud.password);
+                using (var response = (FtpWebResponse)await ftpWebRequest.GetResponseAsync()) ;
+            }
 
         }
 
