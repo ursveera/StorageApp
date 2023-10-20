@@ -112,6 +112,7 @@ namespace StorageApp.Controllers
             }
 
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost]
         public async Task<IActionResult> List(string cloudName, string? prefix = "", string? filterByColumn = "", string? filterValue = "", string? orderBy = "asc", int? page = 0, int? pageSize = 0)
         {

@@ -1,4 +1,5 @@
-﻿using Amazon.S3.Model;
+﻿using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+using Amazon.S3.Model;
 using Google.Api.Gax.ResourceNames;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Storage.v1;
@@ -8,6 +9,7 @@ using RestSharp;
 using StorageApp.CloudProvider.Config;
 using StorageApp.Extensions;
 using StorageApp.Models;
+using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Security.AccessControl;
@@ -34,7 +36,16 @@ namespace StorageApp.Services
 
         public async Task CreateFolderAsync(string folderpath)
         {
-            await storage.UploadObjectAsync(cloudoptions.Gcp.bucketname, folderpath, "application/x-www-form-urlencoded", new System.IO.MemoryStream());
+            string[] folders = folderpath.Split('/');
+            string currentPath = string.Empty;
+            foreach (string folder in folders)
+            {
+                if (!string.IsNullOrEmpty(folder))
+                {
+                    currentPath += folder + "/";
+                    await storage.UploadObjectAsync(cloudoptions.Gcp.bucketname, currentPath, "application/x-www-form-urlencoded", new System.IO.MemoryStream());
+                }
+            }
         }
 
         public async Task DeleteFileAsync(string filename)
@@ -54,11 +65,13 @@ namespace StorageApp.Services
 
         public async Task<FilesList> ListAllFileAndFoldersAsync(string prefix)
         {
-            var objects = storage.ListObjectsAsync(cloudoptions.Gcp.bucketname, prefix);
+            var listOptions = new ListObjectsOptions { Delimiter = "/" };
+            var objects = storage.ListObjectsAsync(cloudoptions.Gcp.bucketname);
             List<FileInformation> fileInformationList = new List<FileInformation>();
             List<FolderInformation> folderinformationList = new List<FolderInformation>();
             List<Google.Apis.Storage.v1.Data.Object> objectss = new List<Google.Apis.Storage.v1.Data.Object>();
             string storageName = "";
+
             var filesList = new FilesList
             {
                 fileInfo = new List<FileInformation>(),
@@ -70,9 +83,12 @@ namespace StorageApp.Services
             }
             foreach (var storageObject in objectss)
             {
-                if (prefix != "") storageName = storageObject.Name.Replace(prefix, "");
-                else storageName = storageObject.Name;
-                if (Path.GetDirectoryName(storageName) == "")
+                string currentFileName = prefix + Path.GetFileName(storageObject.Name);
+                if (Path.GetDirectoryName(storageObject.Name) == "" && prefix != "")
+                {
+                    continue;
+                }
+                else if (storageObject.Name == currentFileName && Path.GetExtension(storageObject.Name) != "")
                 {
                     storageName = Path.GetFileName(storageObject.Name);
                     filesList.fileInfo.Add(new FileInformation
@@ -87,26 +103,46 @@ namespace StorageApp.Services
                 }
                 else
                 {
-                    char target = '/';
-                    int prefixSlashCount = prefix.Count(e => e == target);
-                    if (storageObject.Name.Count(e => e == target) == prefixSlashCount + 1 && Path.GetExtension(storageObject.Name) == "")
+                    if ((prefix == "" && Path.GetDirectoryName(storageObject.Name).Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Length == 1)||(prefix != "" && Path.GetDirectoryName(storageObject.Name).Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Length == prefix.Split('/').Length && storageObject.Name.StartsWith(prefix)))
                     {
-                        int index = storageObject.Name.IndexOf(prefix);
-                        if (index >= 0)
+                        char target = '/';
+                        int prefixSlashCount = prefix.Count(e => e == target);
+                        if (storageObject.Name.Count(e => e == target) == prefixSlashCount + 1 && Path.GetExtension(storageObject.Name) == "")
                         {
-                            string foldername = storageObject.Name.Remove(index, prefix.Length).Insert(index, "");
-                            folderinformationList.Add(new FolderInformation
+                            int index = storageObject.Name.IndexOf(prefix);
+                            if (index >= 0)
                             {
-                                createdBy = "Admin",
-                                createdOn = storageObject.TimeCreated.ToString(),
-                                size = storageObject.Size.ToString(),
-                                folderName = foldername
-                            });
-                            filesList.folderInfo = folderinformationList;
+                                string foldername = storageObject.Name.Remove(index, prefix.Length).Insert(index, "");
+                                folderinformationList.Add(new FolderInformation
+                                {
+                                    createdBy = "Admin",
+                                    createdOn = storageObject.TimeCreated.ToString(),
+                                    size = storageObject.Size.ToString(),
+                                    folderName = foldername
+                                });
+                                filesList.folderInfo = folderinformationList;
+                            }
                         }
                     }
                 }
+
+                //else
+                //{
+                //    if (prefixSlashCount >= 1)
+                //    {
+                //        folderinformationList.Add(new FolderInformation
+                //        {
+                //            createdBy = "Admin",
+                //            createdOn = storageObject.TimeCreated.ToString(),
+                //            size = storageObject.Size.ToString(),
+                //            folderName = storageObject.Name
+                //        });
+                //        filesList.folderInfo = folderinformationList;
+                //    }
+                //}
+
             }
+            filesList.folderInfo = folderinformationList;
             return filesList;
         }
 
@@ -132,9 +168,25 @@ namespace StorageApp.Services
 
         public async Task UploadFileAsync(string filename, byte[] content)
         {
-            using (MemoryStream stream = new MemoryStream(content))
+            try
             {
-                await storage.UploadObjectAsync(cloudoptions.Gcp.bucketname, filename, MimeMapping.GetContentTypeFromExtension(filename), stream);
+
+                using (MemoryStream stream = new MemoryStream(content))
+                {
+                    if (Path.GetDirectoryName(filename) != "")
+                    {
+                        var storageObject = storage.GetObject(cloudoptions.Gcp.bucketname, Path.GetDirectoryName(filename));
+                    }
+                    await storage.UploadObjectAsync(cloudoptions.Gcp.bucketname, filename, MimeMapping.GetContentTypeFromExtension(filename), stream);
+                }
+            }
+            catch (Google.GoogleApiException e) when (e.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                CreateFolderAsync(Path.GetDirectoryName(filename).Replace("\\", "/"));
+                using (MemoryStream stream = new MemoryStream(content))
+                {
+                    await storage.UploadObjectAsync(cloudoptions.Gcp.bucketname, filename, MimeMapping.GetContentTypeFromExtension(filename), stream);
+                }
             }
         }
         public async Task<bool> CheckExists(string filename)

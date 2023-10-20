@@ -22,6 +22,16 @@ namespace StorageApp.Controllers
             this.cloudConfiguration = cloudConfiguration;
         }
 
+        /// <summary>
+        /// This is a GetCloudConfiguration API method that does something
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /api/CloudConfig
+        ///
+        /// </remarks>
+        /// <returns>Some sample data</returns>
         [HttpGet]
         public async Task<IActionResult> GetCloudConfiguration(string cloudname)
         {
@@ -47,6 +57,7 @@ namespace StorageApp.Controllers
             resp.Message = "Updated Successfully";
             return Ok(resp);
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("aws")]
         public IActionResult PostAWS(AWSOptions cloud)
         {
@@ -58,6 +69,7 @@ namespace StorageApp.Controllers
             resp.Message = "AWS Updated Successfully";
             return Ok(resp);
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("azure")]
         public IActionResult PostAZURE(AZUREOptions cloud)
         {
@@ -69,6 +81,7 @@ namespace StorageApp.Controllers
             resp.Message = "Azure Updated Successfully";
             return Ok(resp);
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("gcp")]
         public IActionResult PostGCP(GCPOptions cloud)
         {
@@ -80,6 +93,7 @@ namespace StorageApp.Controllers
             resp.Message = "Gcp Updated Successfully";
             return Ok(resp);
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("target")]
         public IActionResult PostTarget(string target)
         {

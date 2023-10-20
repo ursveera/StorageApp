@@ -1,8 +1,11 @@
-﻿using StorageApp.CloudProvider.Config;
+﻿using Microsoft.OpenApi.Models;
+using StorageApp.CloudProvider.Config;
 using StorageApp.CloudProvider.RDBMS;
 using StorageApp.Factory;
 using StorageApp.Interfaces;
 using StorageApp.Services;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 
 namespace StorageApp.Helpers
 {
@@ -15,6 +18,18 @@ namespace StorageApp.Helpers
             services.AddScoped<ICloudStorageServiceFactory, CloudStorageServiceFactory>();
             services.AddTransient<ICloudConfiguration, CloudConfigurationService>();
             services.AddTransient<IRDBMSConfiguration, RDBMSConfigurationServices>();
+
+            return services;
+        }
+        public static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
+        {
+            services.AddSwaggerGen(option =>
+            {
+                option.SwaggerDoc("v1.0", new OpenApiInfo { Title = "CAAF", Version = "v1" });
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                option.IncludeXmlComments(xmlPath);
+            });
 
             return services;
         }

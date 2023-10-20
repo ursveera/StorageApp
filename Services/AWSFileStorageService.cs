@@ -72,7 +72,13 @@ namespace StorageApp.Services
 
         public async Task UploadFileAsync(string filename, byte[] bytecontent)
         {
-
+            using (MemoryStream stream = new MemoryStream(bytecontent))
+            {
+                if (Path.GetDirectoryName(filename) != "")
+                {
+                    CreateFolderAsync(Path.GetDirectoryName(filename).Replace("\\", "/"));
+                }
+            }
             var pubObjectrequest = new PutObjectRequest
             {
                 BucketName = cloudoptions.AWS.BucketName,
@@ -156,14 +162,20 @@ namespace StorageApp.Services
 
         public async Task CreateFolderAsync(string folderpath)
         {
-            if (!string.IsNullOrEmpty(folderpath))
+            string[] folders = folderpath.Split('/');
+            string currentPath = string.Empty;
+            foreach (string folder in folders)
             {
-                var foldercreate = new PutObjectRequest
+                if (!string.IsNullOrEmpty(folder))
                 {
-                    BucketName = cloudoptions.AWS.BucketName,
-                    Key = folderpath
-                };
-                var foldercreateresponse = await s3Client.PutObjectAsync(foldercreate);
+                    currentPath += folder + "/";
+                    var foldercreate = new PutObjectRequest
+                    {
+                        BucketName = cloudoptions.AWS.BucketName,
+                        Key = currentPath
+                    };
+                    var foldercreateresponse = await s3Client.PutObjectAsync(foldercreate);
+                }
             }
         }
 

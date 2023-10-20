@@ -43,6 +43,7 @@ namespace StorageApp.Controllers
             resp.Message = "Updated Successfully";
             return Ok(resp);
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("target")]
         public IActionResult PostTarget(string target)
         {

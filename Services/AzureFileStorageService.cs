@@ -121,7 +121,7 @@ namespace StorageApp.Services
                     string foldername = string.Empty;
                     if (prefix != "")
                     {
-                        foldername = blobDir.Prefix.Replace(prefix, "");
+                        foldername = blobDir.Prefix.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries).Last() + "/";
                     }
                     else foldername = blobDir.Prefix;
                     filesList.folderInfo.Add(new FolderInformation
@@ -144,7 +144,7 @@ namespace StorageApp.Services
 
         public async Task CreateFolderAsync(string folderpath)
         {
-            BlobClient blobClient = containerClient.GetBlobClient(folderpath + ".nofile");
+            BlobClient blobClient = containerClient.GetBlobClient(folderpath);
             await blobClient.UploadAsync(new System.IO.MemoryStream(Array.Empty<byte>()), true);
         }
 
