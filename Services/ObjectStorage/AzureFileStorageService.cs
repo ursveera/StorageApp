@@ -145,7 +145,7 @@ namespace StorageApp.Services
 
             await foreach (var blobItem in containerClient.GetBlobsAsync())
             {
-                if (blobItem.Name.StartsWith(filename) && IsDirectChild(blobItem.Name, filename))
+                if (blobItem.Name.StartsWith(filename))
                 {
                     await containerClient.DeleteBlobIfExistsAsync(blobItem.Name);
                 }

@@ -1,59 +1,70 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using StorageApp.CloudProvider.Config;
 using StorageApp.CloudProvider.RDBMS;
+using StorageApp.CloudProvider.RDBMS.Builder;
 using StorageApp.Interfaces;
+using StorageApp.Models.RDBMS;
 using StorageApp.Models.Response;
+using StorageApp.Services;
+using StorageApp.Services.RDBMS;
 
 namespace StorageApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]/[action]")]
     [ApiController]
     [CustomExceptionFilter]
     public class RDBMSConfigController : Controller
     {
         private readonly IRDBMSConfiguration rdbmsConfiguration;
+        private readonly IRDBMSBuilder rdbmsbuilder;
+        private readonly RDBMSOptions rDBMSOptions;
         ReturnResponse resp = new ReturnResponse();
-        public RDBMSConfigController(IRDBMSConfiguration rdbmsConfiguration)
+        public RDBMSConfigController(IRDBMSBuilder rdbmsConfiguration,IOptionsMonitor<RDBMSOptions> rdbmsoptions)
         {
-            this.rdbmsConfiguration = rdbmsConfiguration;
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetRDBMSonfiguration(string rdbmsname)
-        {
-            if (string.IsNullOrEmpty(rdbmsname))
-            {
-                return BadRequest("Cloud name is missing.");
-            }
-            var config = await rdbmsConfiguration.GetRDBMSConfig(rdbmsname);
-            if (config == null)
-            {
-                return NotFound("RDBMS configuration not found.");
-            }
-            return Ok(config);
+            rDBMSOptions = rdbmsoptions.CurrentValue;
         }
         [HttpPost]
-        public IActionResult PostRDBMSConfiguration(RDBMSOptions rdbms)
+        public async Task<IActionResult> PostDB(RDBMSInfo rdbms)
         {
-            if (rdbms == null)
-            {
-                return BadRequest("Invalid RDBMS configuration data.");
-            }
-            rdbmsConfiguration.UpdateRDBMSSettings(rdbms);
-            resp.Message = "Updated Successfully";
-            return Ok(resp);
+            var azureBuilder = new AZUREBuilder();
+            var director = new RDBMSDirector(azureBuilder);
+            director.Construct(rdbms);
+            var dbList = azureBuilder.GetListDataBase();
+            return Ok(dbList);
         }
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpPost("target")]
-        public IActionResult PostTarget(string target)
+        [HttpPost]
+        public async Task<IActionResult> PostConnection(Connections connections,string dbname)
         {
-            if (string.IsNullOrEmpty(target))
-            {
-                return BadRequest("Invalid target.");
-            }
-            rdbmsConfiguration.UpdateRDBMSSettings(target);
-            resp.Message = "Target Updated Successfully";
-            return Ok(resp);
+            var azureBuilder = new AZUREBuilder();
+            var director = new RDBMSDirector(azureBuilder);
+            director.ConstructConnection(connections, dbname);
+            var dbList = azureBuilder.GetListDataBase();
+            return Ok(dbList);
         }
+        //[HttpPost]
+        //public IActionResult PostRDBMSConfiguration(RDBMSOptions rdbms)
+        //{
+        //    if (rdbms == null)
+        //    {
+        //        return BadRequest("Invalid RDBMS configuration data.");
+        //    }
+        //    rdbmsConfiguration.UpdateRDBMSSettings(rdbms);
+        //    resp.Message = "Updated Successfully";
+        //    return Ok(resp);
+        //}
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //[HttpPost("target")]
+        //public IActionResult PostTarget(string target)
+        //{
+        //    if (string.IsNullOrEmpty(target))
+        //    {
+        //        return BadRequest("Invalid target.");
+        //    }
+        //    rdbmsConfiguration.UpdateRDBMSSettings(target);
+        //    resp.Message = "Target Updated Successfully";
+        //    return Ok(resp);
+        //}
     }
 }

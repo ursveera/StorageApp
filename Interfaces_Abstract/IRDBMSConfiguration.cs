@@ -6,7 +6,6 @@ namespace StorageApp.Interfaces
     public interface IRDBMSConfiguration
     {
         Task<Object> GetRDBMSConfig(string cloud);
-        void UpdateRDBMSSettings(RDBMSOptions updatedSettings);
         void UpdateRDBMSSettings(string  target);
     }
 }

@@ -1,9 +1,14 @@
-﻿namespace StorageApp.CloudProvider.RDBMS
+﻿using StorageApp.Models.RDBMS;
+
+namespace StorageApp.CloudProvider.RDBMS.Builder
 {
     public class RDBMSOptions
     {
-        public MSSQLOptions MicrosoftSQLServer { get; set; }
-        public MySQLOptions MySQL { get; set; }
-        public string Target { get; set; }
+        public List<RDBMSInfo> Azure { get; set; }
+        public List<RDBMSInfo> AWS { get; set; }
+        public List<RDBMSInfo> GCP { get; set; }
+        public List<RDBMSInfo> NoCloud { get; set; }
     }
 }
+
+
