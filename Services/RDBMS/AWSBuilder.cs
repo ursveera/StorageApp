@@ -11,13 +11,13 @@ using Newtonsoft.Json;
 
 namespace StorageApp.Services
 {
-    public class AZUREBuilder : IRDBMSBuilder
+    public class AWSBuilder : IRDBMSBuilder
     {
 
         private readonly RDBMSOptions _rdbmsoptions;
         private readonly AppSettingsFilePathManager appSettingsFilePathManager;
 
-        public AZUREBuilder()
+        public AWSBuilder()
         {
             appSettingsFilePathManager = AppSettingsFilePathManager.Instance;
         }
@@ -28,18 +28,18 @@ namespace StorageApp.Services
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);
             JObject azure = JObject.FromObject(info);
-            ((JArray)jObject["RDBMS"]["azure"]).Add(azure);
+            ((JArray)jObject["RDBMS"]["aws"]).Add(azure);
             string updatedJson = jObject.ToString();
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath, updatedJson);
         }
 
-        public void AddNewConnection(Connections connectionInfo,string dbname)
+        public void AddNewConnection(Connections connectionInfo, string dbname)
         {
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);
             JObject newConnection = JObject.FromObject(connectionInfo);
-            JArray azureArray = (JArray)jObject["RDBMS"]["azure"];
+            JArray azureArray = (JArray)jObject["RDBMS"]["aws"];
             JObject sqlObject = azureArray.Children<JObject>().FirstOrDefault(o => o["name"] != null && o["name"].ToString().ToLower() == dbname);
             JArray connectionsArray = (JArray)sqlObject["connections"];
             connectionsArray.Add(newConnection);
@@ -51,7 +51,7 @@ namespace StorageApp.Services
         {
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             var jObject = JObject.Parse(json);
-            var azureRDBMS = jObject["RDBMS"]["azure"];
+            var azureRDBMS = jObject["RDBMS"]["aws"];
             List<RDBMSInfo> rdbmsInfoList = JsonConvert.DeserializeObject<List<RDBMSInfo>>(azureRDBMS.ToString());
             return rdbmsInfoList;
         }
@@ -60,7 +60,7 @@ namespace StorageApp.Services
         {
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             var jObject = JObject.Parse(json);
-            var azureRDBMS = jObject["RDBMS"]["azure"];
+            var azureRDBMS = jObject["RDBMS"]["aws"];
             JObject sqlObject = azureRDBMS.Children<JObject>().FirstOrDefault(o => o["name"] != null && o["name"].ToString().ToLower() == dbname.ToLower());
             List<Connections> connections = JsonConvert.DeserializeObject<List<Connections>>(sqlObject["connections"].ToString());
             return connections;

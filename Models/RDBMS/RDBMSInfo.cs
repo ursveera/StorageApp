@@ -2,7 +2,7 @@
 {
     public class RDBMSInfo
     {
-        public string Name { get; set; }
-        public List<Connections> Connections { get; set; }
+        public string name { get; set; }
+        public List<Connections> connections { get; set; }
     }
 }

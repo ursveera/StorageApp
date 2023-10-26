@@ -4,7 +4,9 @@ using Newtonsoft.Json;
 using StorageApp.CloudProvider.Config;
 using StorageApp.CloudProvider.RDBMS;
 using StorageApp.CloudProvider.RDBMS.Builder;
+using StorageApp.Factory;
 using StorageApp.Interfaces;
+using StorageApp.Interfaces_Abstract;
 using StorageApp.Models.RDBMS;
 using StorageApp.Models.Response;
 using StorageApp.Services;
@@ -21,50 +23,43 @@ namespace StorageApp.Controllers
         private readonly IRDBMSBuilder rdbmsbuilder;
         private readonly RDBMSOptions rDBMSOptions;
         ReturnResponse resp = new ReturnResponse();
-        public RDBMSConfigController(IRDBMSBuilder rdbmsConfiguration,IOptionsMonitor<RDBMSOptions> rdbmsoptions)
+        private readonly IRDBMSBuilderFactory rDBMSBuilderFactory;
+        public RDBMSConfigController(IRDBMSBuilder rdbmsConfiguration,IOptionsMonitor<RDBMSOptions> rdbmsoptions,IRDBMSBuilderFactory rDBMSBuilderFactory)
         {
             rDBMSOptions = rdbmsoptions.CurrentValue;
+            this.rDBMSBuilderFactory = rDBMSBuilderFactory;
         }
         [HttpPost]
-        public async Task<IActionResult> PostDB(RDBMSInfo rdbms)
+        public async Task<IActionResult> PostDB(RDBMSInfo rdbms,string cloudname)
         {
-            var azureBuilder = new AZUREBuilder();
-            var director = new RDBMSDirector(azureBuilder);
+            var rdmbsbuilder = rDBMSBuilderFactory.GetRDGMSBuiler(cloudname);
+            var director = new RDBMSDirector(rdmbsbuilder);
             director.Construct(rdbms);
-            var dbList = azureBuilder.GetListDataBase();
-            return Ok(dbList);
+            return Ok("DB Posted");
         }
         [HttpPost]
-        public async Task<IActionResult> PostConnection(Connections connections,string dbname)
+        public async Task<IActionResult> PostConnection(Connections connections,string cloudname,string dbname)
         {
-            var azureBuilder = new AZUREBuilder();
-            var director = new RDBMSDirector(azureBuilder);
+            var rdmbsbuilder = rDBMSBuilderFactory.GetRDGMSBuiler(cloudname);
+            var director = new RDBMSDirector(rdmbsbuilder);
             director.ConstructConnection(connections, dbname);
-            var dbList = azureBuilder.GetListDataBase();
-            return Ok(dbList);
+            return Ok("Connection Added");
         }
-        //[HttpPost]
-        //public IActionResult PostRDBMSConfiguration(RDBMSOptions rdbms)
-        //{
-        //    if (rdbms == null)
-        //    {
-        //        return BadRequest("Invalid RDBMS configuration data.");
-        //    }
-        //    rdbmsConfiguration.UpdateRDBMSSettings(rdbms);
-        //    resp.Message = "Updated Successfully";
-        //    return Ok(resp);
-        //}
-        //[ApiExplorerSettings(IgnoreApi = true)]
-        //[HttpPost("target")]
-        //public IActionResult PostTarget(string target)
-        //{
-        //    if (string.IsNullOrEmpty(target))
-        //    {
-        //        return BadRequest("Invalid target.");
-        //    }
-        //    rdbmsConfiguration.UpdateRDBMSSettings(target);
-        //    resp.Message = "Target Updated Successfully";
-        //    return Ok(resp);
-        //}
+        [HttpGet]
+        public async Task<IActionResult> GetDB(string cloudname)
+        {
+            var rdmbsbuilder = rDBMSBuilderFactory.GetRDGMSBuiler(cloudname);
+            var director = new RDBMSDirector(rdmbsbuilder);
+            var DBS=director.GetDB();
+            return Ok(DBS);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetConnections(string cloudname,string dbname)
+        {
+            var rdmbsbuilder = rDBMSBuilderFactory.GetRDGMSBuiler(cloudname);
+            var director = new RDBMSDirector(rdmbsbuilder);
+            var connections = director.GetConnections(dbname);
+            return Ok(connections);
+        }
     }
 }

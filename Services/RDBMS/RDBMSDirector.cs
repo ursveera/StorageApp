@@ -21,5 +21,13 @@ namespace StorageApp.Services.RDBMS
         {
             _builder.AddNewConnection(connections, dbname);
         }
+        public List<Connections> GetConnections(string dbname)
+        {
+            return  _builder.GetListOfConnections(dbname);
+        }
+        public List<RDBMSInfo> GetDB()
+        {
+            return _builder.GetListDataBase();
+        }
     }
 }

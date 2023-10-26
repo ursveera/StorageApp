@@ -4,6 +4,7 @@ using StorageApp.CloudProvider.RDBMS;
 using StorageApp.CloudProvider.RDBMS.Builder;
 using StorageApp.Factory;
 using StorageApp.Interfaces;
+using StorageApp.Interfaces_Abstract;
 using StorageApp.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
@@ -17,6 +18,7 @@ namespace StorageApp.Helpers
             services.Configure<CloudOptions>(configuration.GetSection("Cloud"));
             services.Configure<RDBMSOptions>(configuration.GetSection("RDBMS"));
             services.AddScoped<ICloudStorageServiceFactory, CloudStorageServiceFactory>();
+            services.AddScoped<IRDBMSBuilderFactory,RDBMSBuilderFactory>();
             services.AddTransient<ICloudConfiguration, CloudConfigurationService>();
             services.AddTransient<IRDBMSBuilder, AZUREBuilder>();
             return services;
