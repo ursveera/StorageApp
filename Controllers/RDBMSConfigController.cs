@@ -61,5 +61,10 @@ namespace StorageApp.Controllers
             var connections = director.GetConnections(dbname);
             return Ok(connections);
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAllRDBMS()
+        {
+            return Ok(rDBMSOptions);
+        }
     }
 }
