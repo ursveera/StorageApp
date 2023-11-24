@@ -1,4 +1,5 @@
-﻿using FirebaseAdmin;
+﻿using Amazon.SimpleNotificationService.Model;
+using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
@@ -36,7 +37,7 @@ namespace StorageApp.Services.NotificationService
 
             var notificationMessage = new Message
             {
-                Token = _notificationServiceOptions.gcp.FCMDeviceToken,
+                Topic = "NotifcationServiceTest",
                 Notification = new Notification
                 {
                     Title = "Your Notification Title",

@@ -29,8 +29,9 @@ namespace StorageApp.Services.NotificationService
             using var snsClient = new AmazonSimpleNotificationServiceClient(_accessKey, _secretKey, _region);
             var request = new PublishRequest
             {
+                TopicArn = "arn:aws:sns:us-east-2:547735170130:NotifcationServiceTest",
                 Message = message,
-                TargetArn = _arn
+                //TargetArn = _arn  //for single device
             };
             var response = await snsClient.PublishAsync(request);
 
