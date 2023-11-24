@@ -1,18 +1,17 @@
-﻿using StorageApp.CloudProvider.RDBMS.Builder;
-using StorageApp.Interfaces;
-using StorageApp.Models.RDBMS;
+﻿using StorageApp.Interfaces;
+using StorageApp.Models.NOSQL;
 
-namespace StorageApp.Services.RDBMS
+namespace StorageApp.Services.NOSQL
 {
-    public class RDBMSDirector
+    public class NOSQLDirector
     {
-        private readonly IRDBMSBuilder _builder;
+        private readonly INOSQLBuilder _builder;
 
-        public RDBMSDirector(IRDBMSBuilder builder)
+        public NOSQLDirector(INOSQLBuilder builder)
         {
             _builder = builder;
         }
-        public void Construct(RDBMSInfo info)
+        public void Construct(NOSQLInfo info)
         {
             _builder.AddDataBase(info);
         }
@@ -24,7 +23,7 @@ namespace StorageApp.Services.RDBMS
         {
             return  _builder.GetListOfConnections(dbname);
         }
-        public List<RDBMSInfo> GetDB()
+        public List<NOSQLInfo> GetDB()
         {
             return _builder.GetListDataBase();
         }
@@ -35,7 +34,7 @@ namespace StorageApp.Services.RDBMS
         public void DeleteConnection(string dbname, string connectionname) {
             _builder.DeleteConnection(dbname, connectionname);
         }
-        public void UpdateDB(RDBMSInfo rdbmsinfo)
+        public void UpdateDB(NOSQLInfo rdbmsinfo)
         {
             _builder.UpdateDataBase(rdbmsinfo);
         }

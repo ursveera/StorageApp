@@ -1,46 +1,45 @@
-﻿using StorageApp.Models.RDBMS;
-using StorageApp.Interfaces;
+﻿using StorageApp.Interfaces;
 using StorageApp.CloudProvider.Config;
-using StorageApp.CloudProvider.RDBMS.Builder;
 using Microsoft.Extensions.Options;
 using static Google.Cloud.Storage.V1.UrlSigner;
 using StorageApp.FileManager;
 using Newtonsoft.Json.Linq;
 using System.Xml.Linq;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Http;
+using StorageApp.Models.NOSQL;
+using StorageApp.CloudProvider.NOSQL;
 
 namespace StorageApp.Services
 {
-    public class AZUREBuilder : IRDBMSBuilder
+    public class nosql_AWSBuilder : INOSQLBuilder
     {
 
-        private readonly RDBMSOptions _rdbmsoptions;
+        private readonly NOSQLOptions _NOSQLoptions;
         private readonly AppSettingsFilePathManager appSettingsFilePathManager;
 
-        public AZUREBuilder()
+        public nosql_AWSBuilder()
         {
             appSettingsFilePathManager = AppSettingsFilePathManager.Instance;
         }
 
-        public void AddDataBase(RDBMSInfo info)
+        public void AddDataBase(NOSQLInfo info)
         {
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);
             JObject azure = JObject.FromObject(info);
-            ((JArray)jObject["RDBMS"]["azure"]).Add(azure);
+            ((JArray)jObject["NOSQL"]["aws"]).Add(azure);
             string updatedJson = jObject.ToString();
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath, updatedJson);
         }
 
-        public void AddNewConnection(Connections connectionInfo,string dbname)
+        public void AddNewConnection(Connections connectionInfo, string dbname)
         {
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);
             JObject newConnection = JObject.FromObject(connectionInfo);
-            JArray azureArray = (JArray)jObject["RDBMS"]["azure"];
+            JArray azureArray = (JArray)jObject["NOSQL"]["aws"];
             JObject sqlObject = azureArray.Children<JObject>().FirstOrDefault(o => o["name"] != null && o["name"].ToString().ToLower() == dbname);
             JArray connectionsArray = (JArray)sqlObject["connections"];
             connectionsArray.Add(newConnection);
@@ -50,10 +49,11 @@ namespace StorageApp.Services
 
         public void DeleteConnection(string dbname,string connectionname)
         {
+
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);
-            JArray azureArray = (JArray)jObject["RDBMS"]["azure"];
+            JArray azureArray = (JArray)jObject["NOSQL"]["aws"];
             JObject sqlObject = azureArray.Children<JObject>().FirstOrDefault(o => o["name"] != null && o["name"].ToString().ToLower() == dbname.ToLower());
             if (sqlObject != null)
             {
@@ -73,7 +73,7 @@ namespace StorageApp.Services
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);
-            JArray azureArray = (JArray)jObject["RDBMS"]["azure"];
+            JArray azureArray = (JArray)jObject["NOSQL"]["aws"];
             JObject sqlObject = azureArray.Children<JObject>().FirstOrDefault(o => o["name"] != null && o["name"].ToString().ToLower() == name.ToLower());
             if (sqlObject != null)
             {
@@ -83,21 +83,21 @@ namespace StorageApp.Services
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath, updatedJson);
         }
 
-        public List<RDBMSInfo> GetListDataBase()
+        public List<NOSQLInfo> GetListDataBase()
         {
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             var jObject = JObject.Parse(json);
-            var azureRDBMS = jObject["RDBMS"]["azure"];
-            List<RDBMSInfo> rdbmsInfoList = JsonConvert.DeserializeObject<List<RDBMSInfo>>(azureRDBMS.ToString());
-            return rdbmsInfoList;
+            var azureNOSQL = jObject["NOSQL"]["aws"];
+            List<NOSQLInfo> NOSQLInfoList = JsonConvert.DeserializeObject<List<NOSQLInfo>>(azureNOSQL.ToString());
+            return NOSQLInfoList;
         }
 
         public List<Connections> GetListOfConnections(string dbname)
         {
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             var jObject = JObject.Parse(json);
-            var azureRDBMS = jObject["RDBMS"]["azure"];
-            JObject sqlObject = azureRDBMS.Children<JObject>().FirstOrDefault(o => o["name"] != null && o["name"].ToString().ToLower() == dbname.ToLower());
+            var azureNOSQL = jObject["NOSQL"]["aws"];
+            JObject sqlObject = azureNOSQL.Children<JObject>().FirstOrDefault(o => o["name"] != null && o["name"].ToString().ToLower() == dbname.ToLower());
             List<Connections> connections = JsonConvert.DeserializeObject<List<Connections>>(sqlObject["connections"].ToString());
             return connections;
         }
@@ -108,7 +108,7 @@ namespace StorageApp.Services
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);
             JObject newConnection = JObject.FromObject(connectionInfo);
-            JArray azureArray = (JArray)jObject["RDBMS"]["azure"];
+            JArray azureArray = (JArray)jObject["NOSQL"]["aws"];
             JObject sqlObject = azureArray.Children<JObject>().FirstOrDefault(o => o["name"] != null && o["name"].ToString().ToLower() == dbname.ToLower());
             if (sqlObject != null)
             {
@@ -119,23 +119,23 @@ namespace StorageApp.Services
                     connectionToUpdate.Remove();
                     connectionsArray.Add(newConnection);
                 }
-            }            
+            }
             string updatedJson = jObject.ToString();
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath, updatedJson);
         }
 
-        public void UpdateDataBase(RDBMSInfo info)
+        public void UpdateDataBase(NOSQLInfo info)
         {
             var json = File.ReadAllText(appSettingsFilePathManager.AppSettingsFilePath);
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath_BCK, json);
             var jObject = JObject.Parse(json);
             JObject azure = JObject.FromObject(info);
-            JArray azureArray = (JArray)jObject["RDBMS"]["azure"];
+            JArray azureArray = (JArray)jObject["NOSQL"]["aws"];
             JObject sqlObject = azureArray.Children<JObject>().FirstOrDefault(o => o["name"] != null && o["name"].ToString().ToLower() == info.name.ToLower());
             if (sqlObject != null)
             {
-                ((JArray)jObject["RDBMS"]["azure"]).Remove(sqlObject);
-                ((JArray)jObject["RDBMS"]["azure"]).Add(azure);
+                ((JArray)jObject["NOSQL"]["aws"]).Remove(sqlObject);
+                ((JArray)jObject["NOSQL"]["aws"]).Add(azure);
             }
             string updatedJson = jObject.ToString();
             File.WriteAllText(appSettingsFilePathManager.AppSettingsFilePath, updatedJson);

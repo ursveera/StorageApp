@@ -1,14 +1,13 @@
-﻿using StorageApp.CloudProvider.RDBMS.Builder;
-using StorageApp.Models.RDBMS;
+﻿using StorageApp.Models.NOSQL;
 
 namespace StorageApp.Interfaces
 {
-    public interface IRDBMSBuilder
+    public interface INOSQLBuilder
     {
-        List<RDBMSInfo> GetListDataBase();
-        void AddDataBase(RDBMSInfo info);
+        List<NOSQLInfo> GetListDataBase();
+        void AddDataBase(NOSQLInfo info);
         void DeleteDataBase(string name);
-        void UpdateDataBase(RDBMSInfo info);
+        void UpdateDataBase(NOSQLInfo info);
 
         List<Connections> GetListOfConnections(string dbname);
         void AddNewConnection(Connections connectionInfo,string dbname);
