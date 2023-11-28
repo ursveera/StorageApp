@@ -30,6 +30,12 @@ namespace StorageApp.Controllers
             notificationServiceOptions = options.CurrentValue;
             noti = notification;
         }
+        [HttpGet("GetNotificationConfig")]
+        public async Task<IActionResult> GetNotificationConfig(string cloudname)
+        {
+            var resp=await noti.GetNotificationServiceConfig(cloudname);
+            return Ok(resp);
+        }
         [HttpPost("PushMessage")]
         public async Task<IActionResult> PushNotification(string cloudname, string message)
         {
